@@ -2,8 +2,8 @@
 #define SENDER_EMPFAENGER_H
 
 
+#include "generate_name.h"
 #include <fcntl.h>
-#include "id_to_name.h"
 #include <math.h>
 #include <semaphore.h>
 #include <stdio.h>
@@ -13,10 +13,13 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#define TRUE 1
 
-uid_t id = getuid();
-const char *sem_name_1 = id_to_name("/sem_", id, "1");
-const char *shm_name_1 = id_to_name("/shm_", id, "1");
+
+char shm_name_0[14] = "/shm_";
+char sem_name_1[14] = "/sem_";
+char sem_name_2[14] = "/sem_";
+char sem_name_3[14] = "/sem_";
 
 
 #endif
