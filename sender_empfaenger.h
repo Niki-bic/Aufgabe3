@@ -3,6 +3,7 @@
 
 
 #include "generate_name.h"
+#include <errno.h>
 #include <fcntl.h>
 #include <math.h>
 #include <semaphore.h>
@@ -16,10 +17,10 @@
 #define TRUE 1
 
 
-char shm_name_0[14] = "/shm_";
-char sem_name_1[14] = "/sem_";
-char sem_name_2[14] = "/sem_";
-char sem_name_3[14] = "/sem_";
+char shm_name_0[14] = "/shm_"; // name for shared memory
+char sem_name_1[14] = "/sem_"; // name for semaphore mutex
+char sem_name_2[14] = "/sem_"; // name for semaphore count of full entries
+char sem_name_3[14] = "/sem_"; // name for semaphore count of empty spaces
 
 
 #endif

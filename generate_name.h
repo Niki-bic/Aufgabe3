@@ -1,5 +1,5 @@
-#ifndef ID_TO_NAME_H
-#define ID_TO_NAME_H
+#ifndef GENERATE_NAME_H
+#define GENERATE_NAME_H
 
 #include <math.h>
 #include <stdlib.h>
