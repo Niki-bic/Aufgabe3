@@ -1,12 +1,7 @@
 #include "generate_name.h"
 #include "sender_empfaenger.h"
-#include <math.h>
 #include <semaphore.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-#include <unistd.h>
 
 
 int main(int argc, char **argv) {
