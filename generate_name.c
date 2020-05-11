@@ -6,20 +6,20 @@ char *generate_name(char *prefix, uid_t id, int offset) {
     id += offset;
 
     int digits = (int) log10((double) id) + 1;
-    char *id_name = calloc(digits + 1, sizeof(char));
-    
+    char *id_string = calloc(digits + 1, sizeof(char));
+
     int i = 0;
     while (id) {
-        id_name[i] = id % 10 + 48;
+        id_string[i] = id % 10 + 48;
         i++;
         id /= 10;
     }
-    id_name[digits] = '\0';
+    id_string[digits] = '\0';
 
-    id_name = reverse_string(id_name);
+    id_string = reverse_string(id_string);
 
-    strcat(prefix, id_name);
-    free(id_name);
+    strcat(prefix, id_string);
+    free(id_string);
 
     return prefix;
 } // end generate_name
