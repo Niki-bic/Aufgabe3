@@ -38,8 +38,6 @@ int main(int argc, char **argv) {
         // error in sem_open()
     }
     sem_t * const sem_full = sem_open(sem_name_2, O_CREAT, S_IRWXU, 0);
-    // fprintf(stderr, "%s  %p\n", sem_name_2, sem_full);
-
     if (sem_full == SEM_FAILED) {
         fprintf(stderr, "sem_full failed in sender\n");
         // error in sem_open()
@@ -52,13 +50,13 @@ int main(int argc, char **argv) {
 
     errno = 0;
     const int shared_memory = shm_open(shm_name_0, O_CREAT | O_RDWR, S_IRWXU);
-        ftruncate(shared_memory, length * sizeof(int));
+    ftruncate(shared_memory, length * sizeof(int));
 
     // if (errno != EEXIST) { // nur machen wenn noch nicht existent
     //     ftruncate(shared_memory, length * sizeof(int));
     // }
 
-    int * const shared_mem_pointer = mmap(NULL, length * sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED, shared_memory, 0);
+    int * const shared_mem_pointer = mmap(NULL, length * sizeof(int), PROT_WRITE, MAP_SHARED, shared_memory, 0);
     if (shared_mem_pointer == (int * const) MAP_FAILED) {
         fprintf(stderr, "mmap failed in sender\n");
         // error
