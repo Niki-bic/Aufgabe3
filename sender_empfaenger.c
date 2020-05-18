@@ -4,20 +4,28 @@
 unsigned int arguments(int argc, char **argv) {
     unsigned int length;
     int opt;
+	
+	if(argc != 3) { // check Eingabe
+        fprintf(stderr, "Usage: %s [-m] size\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
 
-    while ((opt = getopt(argc, argv, "m:")) != -1) {
+    while ((opt = getopt(argc, argv, ":m:")) != -1) {
         switch (opt) {
             case 'm':
                 length = (unsigned int) strtol(optarg, 0, 10); // error-checking einbauen
                 // printf("%d\n", length);
                 break;
-            case '?':
-                // error: unknown option
-                break;
             default:
-
-                break;
+				fprintf(stderr, "Usage: %s [-m] size\n", argv[0]);
+				exit(EXIT_FAILURE);
         }
+    }
+	
+	
+    if (optind != argc) { // check Eingabe
+        fprintf(stderr, "Usage: %s [-m] size\n", argv[0]);
+		exit(EXIT_FAILURE);
     }
 
     return length;
