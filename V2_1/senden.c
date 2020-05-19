@@ -101,31 +101,34 @@ int main(int argc, char **argv) {
         }	
 	
 	}
-
-
+	// Niki:
+    // kein sem_unlink(), da das nur ein Prozess machen sollte
+    // kein shm_unlink(), da das nur ein Prozess machen sollte
 	errno = 0;
+	if (close(shmfd) == -1){
+		perror("sem_close shmfd");
+		return (EXIT_FAILURE);
+	}
+	//shm_unlink(shm);
+	
 	if (sem_close(p1) == -1) {
 		perror("sem_close p1");
 		return (EXIT_FAILURE);
 	}
-	sem_unlink(sem_1);
+	//sem_unlink(sem_1);
 
 	if (sem_close(p2) == -1) {
 		perror("sem_close p2");
 		return (EXIT_FAILURE);
 	}
-	sem_unlink(sem_2);
-
-	if (close(shmfd) == -1){
-		perror("sem_close shmfd");
-		return (EXIT_FAILURE);
-	}
+	//sem_unlink(sem_2);
 
 	if (munmap(shmptr, sizeof(int)) == -1) {
-		perror("munmap shmfd");
+		perror("munmap shmptr");
 		return (EXIT_FAILURE);
 	}
-
+	
+	
 	return 0;
 }
 
