@@ -91,8 +91,8 @@ int main(int argc, char **argv) {
         
 		(void) sem_post(p1);
 
-		i++;
-		i %= length;
+		//i++;
+		//i %= length;
 
 		putchar(c);
 
