@@ -93,10 +93,11 @@ int main(int argc, char **argv) {
 		
 		(void) sem_post(p2);
 		
-		//i++;
-		//i %= length;
+		i++;
+		i %= length;
 	
 		if (c == EOF) {
+			
         	break;
         }	
 	
