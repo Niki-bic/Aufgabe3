@@ -30,16 +30,14 @@ int main(int argc, char **argv) {
         c = getchar(); 
 
         // critical section
-        errno = 0;
         if (sem_wait(sem_empty) == -1) {
-            // error 
+            perror_and_remove_resources("%s: Error in sem_wait\n", g_argv[0]);
         }
 
         *(shared_mem_pointer + i) = c; // writing in shared-memory
 
-        errno = 0;
         if (sem_post(sem_full) == -1) {
-            // error
+            perror_and_remove_resources("%s: Error in sem_post\n", g_argv[0]);
         }
         // end critical section
 
