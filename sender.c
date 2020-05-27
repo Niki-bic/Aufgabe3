@@ -8,17 +8,17 @@ int main(int argc, char **argv) {
 
     make_names(); // generiert die Namen für die Semaphoren und den Shared-Memory
 
-    sem_t * const sem_full  = sem_open_error_checked(sem_name_1, O_CREAT, S_IRWXU, 0);
+    sem_t * const sem_full  = sem_open_errorchecked(sem_name_1, O_CREAT, S_IRWXU, 0);
     g_sem_full = sem_full;
-    sem_t * const sem_empty = sem_open_error_checked(sem_name_2, O_CREAT, S_IRWXU, length);
+    sem_t * const sem_empty = sem_open_errorchecked(sem_name_2, O_CREAT, S_IRWXU, length);
     g_sem_empty = sem_empty;
 
-    const int shared_memory = shm_open_error_checked(shm_name_0, O_CREAT | O_RDWR, S_IRWXU);
+    const int shared_memory = shm_open_errorchecked(shm_name_0, O_CREAT | O_RDWR, S_IRWXU);
     g_shared_memory = shared_memory;
 
-    ftruncate_error_checked(shared_memory, length * sizeof(int));
+    ftruncate_errorchecked(shared_memory, length * sizeof(int));
 
-    int * const shared_mem_pointer = mmap_error_checked(NULL, length * sizeof(int), PROT_WRITE, \
+    int * const shared_mem_pointer = mmap_errorchecked(NULL, length * sizeof(int), PROT_WRITE, \
             MAP_SHARED, shared_memory, 0);
     g_shared_mem_pointer = shared_mem_pointer;
     

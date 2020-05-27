@@ -32,16 +32,16 @@ char sem_name_2[14]; // name for semaphore-empty
 
 char *generate_name(char *name, uid_t id, const int offset);
 char *reverse_string(char *string);
-int shm_open_error_checked(const char *name, int oflag, mode_t mode);
-int string_to_int(const char * const string);
+int shm_open_errorchecked(const char *name, int oflag, mode_t mode);
+long strtol_errorchecked(const char * const string);
 unsigned int arguments(int argc, char **argv);
 void close_all(int shared_memory, sem_t *sem_full, sem_t *sem_empty);
-void ftruncate_error_checked(int fd, off_t length);
+void ftruncate_errorchecked(int fd, off_t length);
 void make_names(void);
-void *mmap_error_checked(void *addr, size_t length, int prot, int flags, int fd, off_t offset);
+void *mmap_errorchecked(void *addr, size_t length, int prot, int flags, int fd, off_t offset);
 void perror_and_remove_resources(const char * const string, ...);
 void unlink_all_sem(char *sem_name_1, char *sem_name_2);
-sem_t *sem_open_error_checked(const char *name, int oflag, mode_t mode, unsigned int value);
+sem_t *sem_open_errorchecked(const char *name, int oflag, mode_t mode, unsigned int value);
 
 
 #endif

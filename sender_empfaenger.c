@@ -13,7 +13,7 @@ unsigned int arguments(int argc, char **argv) {
     while ((opt = getopt(argc, argv, ":m:")) != -1) {
         switch (opt) {
             case 'm':
-                length = (unsigned int) string_to_int(optarg);
+                length = (unsigned int) strtol_errorchecked(optarg);
                 break;
             default:
                 perror_and_remove_resources("Usage: %s [-m] size\n", global_argv[0]);
@@ -78,7 +78,7 @@ char *reverse_string(char *string) {
 } // end reverse string
 
 
-sem_t *sem_open_error_checked(const char *name, int oflag, mode_t mode, unsigned int value) {
+sem_t *sem_open_errorchecked(const char *name, int oflag, mode_t mode, unsigned int value) {
     sem_t *sem_pointer = sem_open(name, oflag, mode, value);
 
     if (sem_pointer == SEM_FAILED) {
@@ -86,10 +86,10 @@ sem_t *sem_open_error_checked(const char *name, int oflag, mode_t mode, unsigned
     }
 
     return sem_pointer;
-} // end sem_open_error_checked
+} // end sem_open_errorchecked
 
 
-int shm_open_error_checked(const char *name, int oflag, mode_t mode) {
+int shm_open_errorchecked(const char *name, int oflag, mode_t mode) {
     int shared_memory = shm_open(name, oflag, mode);
 
     if (shared_memory == -1) {
@@ -98,27 +98,25 @@ int shm_open_error_checked(const char *name, int oflag, mode_t mode) {
     }
 
     return shared_memory;
-} // end shm_open_error_checked
+} // end shm_open_errorchecked
 
 
-void ftruncate_error_checked(int fd, off_t length) {
+void ftruncate_errorchecked(int fd, off_t length) {
     if (ftruncate(fd, length) == -1) {
         // print_errormessage("%s: Error in ftruncate\n", global_argv[0]);
-         
     }
-} // end ftruncate_error_checked
+} // end ftruncate_errorchecked
 
 
-void *mmap_error_checked(void *addr, size_t length, int prot, int flags, int fd, off_t offset) {
+void *mmap_errorchecked(void *addr, size_t length, int prot, int flags, int fd, off_t offset) {
     void *shared_mem_pointer = mmap(addr, length, prot, flags, fd, offset);
     
     if (shared_mem_pointer == MAP_FAILED) {
         perror_and_remove_resources("%s: Error in mmap\n", global_argv[0]);
-         
     }
 
     return shared_mem_pointer;
-} // end mmap_error_checked
+} // end mmap_errorchecked
 
 
 void close_all(int shared_memory, sem_t *sem_full, sem_t *sem_empty) {
@@ -133,7 +131,6 @@ void close_all(int shared_memory, sem_t *sem_full, sem_t *sem_empty) {
     if (sem_close(sem_empty) == -1) {
         perror_and_remove_resources("%s: Error in sem_close\n", global_argv[0]);
     }
-
      
 } // end close_all
 
@@ -151,17 +148,17 @@ void unlink_all_sem(char *sem_name_1, char *sem_name_2) {
 } // end unlink_sem
 
 
-int string_to_int(const char * const string){
+long strtol_errorchecked(const char * const string){
 	char *end_ptr;
 	errno = 0;
 	long number = strtol(string, &end_ptr, 10);
+
 	if(*end_ptr != '\0' || errno != 0){
         perror_and_remove_resources("%s: Error in strtol\n", global_argv[0]);
-         
 	}
 
-	return (int) number;
-} // end string_to_int
+	return number;
+} // end strtol_errorchecked
 
 
 void print_errormessage(const char * const string, ...){
