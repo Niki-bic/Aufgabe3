@@ -20,7 +20,7 @@ unsigned int arguments(int argc, char **argv) {
     int opt;
 	
 	if(argc != 3) { // check Eingabe
-        perror_and_remove_resources("Usage: %s [-m] size\n", g_argv[0]);
+        perror_and_remove_resources(stderr, "Usage: %s [-m] size\n", g_argv[0]);
     }
 
     while ((opt = getopt(argc, argv, ":m:")) != -1) {
@@ -29,12 +29,12 @@ unsigned int arguments(int argc, char **argv) {
                 length = (unsigned int) strtol_errorchecked(optarg);
                 break;
             default:
-                perror_and_remove_resources("Usage: %s [-m] size\n", g_argv[0]);
+                perror_and_remove_resources(stderr, "Usage: %s [-m] size\n", g_argv[0]);
         }
     }
 	
     if (optind != argc) { // check Eingabe
-        perror_and_remove_resources("Usage: %s [-m] size\n", g_argv[0]);
+        perror_and_remove_resources(stderr, "Usage: %s [-m] size\n", g_argv[0]);
     }
 
     return length;
@@ -94,7 +94,7 @@ sem_t *sem_open_errorchecked(const char *name, int oflag, mode_t mode, unsigned 
     sem_t *sem_pointer = sem_open(name, oflag, mode, value);
 
     if (sem_pointer == SEM_FAILED) {
-        perror_and_remove_resources("%s: Error in sem_open\n", g_argv[0]);
+        perror_and_remove_resources(stderr, "%s: Error in sem_open\n", g_argv[0]);
     }
 
     return sem_pointer;
@@ -105,7 +105,7 @@ int shm_open_errorchecked(const char *name, int oflag, mode_t mode) {
     int shared_memory = shm_open(name, oflag, mode);
 
     if (shared_memory == -1) {
-        perror_and_remove_resources("%s: Error in shm_open\n", g_argv[0]);
+        perror_and_remove_resources(stderr, "%s: Error in shm_open\n", g_argv[0]);
          
     }
 
@@ -115,7 +115,7 @@ int shm_open_errorchecked(const char *name, int oflag, mode_t mode) {
 
 void ftruncate_errorchecked(int fd, off_t length) {
     if (ftruncate(fd, length) == -1) {
-        // print_errormessage("%s: Error in ftruncate\n", g_argv[0]);
+        // print_errormessage(stderr, "%s: Error in ftruncate\n", g_argv[0]);
     }
 } // end ftruncate_errorchecked
 
@@ -124,7 +124,7 @@ void *mmap_errorchecked(void *addr, size_t length, int prot, int flags, int fd, 
     void *shared_mem_pointer = mmap(addr, length, prot, flags, fd, offset);
     
     if (shared_mem_pointer == MAP_FAILED) {
-        perror_and_remove_resources("%s: Error in mmap\n", g_argv[0]);
+        perror_and_remove_resources(stderr, "%s: Error in mmap\n", g_argv[0]);
     }
 
     return shared_mem_pointer;
@@ -133,15 +133,15 @@ void *mmap_errorchecked(void *addr, size_t length, int prot, int flags, int fd, 
 
 void close_all(int shared_memory, sem_t *sem_full, sem_t *sem_empty) {
     if (close(shared_memory) == -1) {
-        perror_and_remove_resources("%s: Error in close\n", g_argv[0]);
+        perror_and_remove_resources(stderr, "%s: Error in close\n", g_argv[0]);
     }
 
     if (sem_close(sem_full) == -1) {
-        perror_and_remove_resources("%s: Error in sem_close\n", g_argv[0]);
+        perror_and_remove_resources(stderr, "%s: Error in sem_close\n", g_argv[0]);
     }
 
     if (sem_close(sem_empty) == -1) {
-        perror_and_remove_resources("%s: Error in sem_close\n", g_argv[0]);
+        perror_and_remove_resources(stderr, "%s: Error in sem_close\n", g_argv[0]);
     }
      
 } // end close_all
@@ -149,15 +149,15 @@ void close_all(int shared_memory, sem_t *sem_full, sem_t *sem_empty) {
 
 void unlink_all(char *shm_name_0, char *sem_name_1, char *sem_name_2) {
     if (shm_unlink(shm_name_0) == -1) {
-        perror_and_remove_resources("%s: Error in shm_unlink\n", g_argv[0]);
+        perror_and_remove_resources(stderr, "%s: Error in shm_unlink\n", g_argv[0]);
     }
 
     if (sem_unlink(sem_name_1) == -1) {
-        perror_and_remove_resources("%s: Error in sem_unlink\n", g_argv[0]);
+        perror_and_remove_resources(stderr, "%s: Error in sem_unlink\n", g_argv[0]);
     }
 
     if (sem_unlink(sem_name_2) == -1) {
-        perror_and_remove_resources("%s: Error in sem_unlink\n", g_argv[0]);
+        perror_and_remove_resources(stderr, "%s: Error in sem_unlink\n", g_argv[0]);
     }
 } // end unlink_all
 
@@ -167,9 +167,12 @@ long strtol_errorchecked(const char * const string){
 	errno = 0;
 	long number = strtol(string, &end_ptr, 10);
 
-	if(*end_ptr != '\0' || errno != 0){
-        perror_and_remove_resources("%s: Error in strtol\n", g_argv[0]);
+	if (*end_ptr != '\0' || errno != 0){
+        perror_and_remove_resources(stderr, "%s: Error in strol\n", g_argv[0]);
 	}
+    else if (number <= 0 || number >= 2147483648) {
+        perror_and_remove_resources(stderr, "Usage: %s [-m] size\n", g_argv[0]);
+    }
 
 	return number;
 } // end strtol_errorchecked
@@ -185,11 +188,11 @@ void print_errormessage(const char * const string, ...){
 } // end print_errormessage
 
 
-void perror_and_remove_resources(const char * const string, ...){
+void perror_and_remove_resources(FILE *stream, const char * const string, ...){
 	va_list array;
 	va_start(array, string);
 
-	vfprintf(stderr, string, array); 
+	vfprintf(stream, string, array); 
 
 	va_end(array);
 

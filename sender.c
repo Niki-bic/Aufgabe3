@@ -31,13 +31,13 @@ int main(int argc, char **argv) {
 
         // critical section
         if (sem_wait(sem_empty) == -1) {
-            perror_and_remove_resources("%s: Error in sem_wait\n", g_argv[0]);
+            perror_and_remove_resources(stderr, "%s: Error in sem_wait\n", g_argv[0]);
         }
 
         *(shared_mem_pointer + i) = c; // writing in shared-memory
 
         if (sem_post(sem_full) == -1) {
-            perror_and_remove_resources("%s: Error in sem_post\n", g_argv[0]);
+            perror_and_remove_resources(stderr, "%s: Error in sem_post\n", g_argv[0]);
         }
         // end critical section
 
@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
     close_all(shared_memory, sem_full, sem_empty);
 
     if (munmap(shared_mem_pointer, length * sizeof(int)) == -1) {
-        perror_and_remove_resources("%s: Error in munmap\n", g_argv[0]);
+        perror_and_remove_resources(stderr, "%s: Error in munmap\n", g_argv[0]);
     }
 
     // kein sem_unlink(), da das nur ein Prozess machen sollte

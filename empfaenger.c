@@ -21,7 +21,6 @@ int main(int argc, char **argv) {
     int * const shared_mem_pointer = mmap_errorchecked(NULL, length * sizeof(int), PROT_READ, \
             MAP_SHARED, shared_memory, 0);
     g_shared_mem_pointer = shared_mem_pointer;
-
     
     int c = '\0'; // character für zeichenweises lesen/schreiben
     int i = 0;    // Index für shared-memory
@@ -30,13 +29,13 @@ int main(int argc, char **argv) {
 
         // critical section
         if (sem_wait(sem_full) == -1) {
-            perror_and_remove_resources("%s: Error in sem_wait\n", g_argv[0]);
+            perror_and_remove_resources(stderr, "%s: Error in sem_wait\n", g_argv[0]);
         }
 
         c = *(shared_mem_pointer + i); // reading from shared-memory
 
         if (sem_post(sem_empty) == -1) {
-            perror_and_remove_resources("%s: Error in sem_post\n", g_argv[0]);
+            perror_and_remove_resources(stderr, "%s: Error in sem_post\n", g_argv[0]);
         }
         // end critical section
 
@@ -48,14 +47,14 @@ int main(int argc, char **argv) {
         }
 
         if (putchar(c) == EOF) {
-            perror_and_remove_resources("%s: Error in putchar\n", g_argv[0]);
+            perror_and_remove_resources(stderr, "%s: Error in putchar\n", g_argv[0]);
         }
     } // end while (TRUE)
 
     close_all(shared_memory, sem_full, sem_empty);
 
     if (munmap(shared_mem_pointer, length * sizeof(int)) == -1) {
-        perror_and_remove_resources("%s: Error in munmap\n", g_argv[0]);
+        perror_and_remove_resources(stderr, "%s: Error in munmap\n", g_argv[0]);
     }
 
     unlink_all(shm_name_0, sem_name_1, sem_name_2);

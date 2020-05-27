@@ -40,7 +40,7 @@ void close_all(int shared_memory, sem_t *sem_full, sem_t *sem_empty);
 void ftruncate_errorchecked(int fd, off_t length);
 void make_names(void);
 void *mmap_errorchecked(void *addr, size_t length, int prot, int flags, int fd, off_t offset);
-void perror_and_remove_resources(const char * const string, ...);
+void perror_and_remove_resources(FILE *stream, const char * const string, ...);
 void unlink_all(char *shm_name_0, char *sem_name_1, char *sem_name_2);
 sem_t *sem_open_errorchecked(const char *name, int oflag, mode_t mode, unsigned int value);
 
