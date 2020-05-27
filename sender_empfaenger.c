@@ -14,7 +14,6 @@ unsigned int arguments(int argc, char **argv) {
         switch (opt) {
             case 'm':
                 length = (unsigned int) strtol(optarg, 0, 10); // error-checking einbauen
-                // printf("%d\n", length);
                 break;
             default:
 				fprintf(stderr, "Usage: %s [-m] size\n", argv[0]);
@@ -37,11 +36,9 @@ void make_names(void)  {
     strcat(shm_name_0, "/shm_");
     strcat(sem_name_1, "/sem_");
     strcat(sem_name_2, "/sem_");
-    strcat(sem_name_3, "/sem_");
-    (void) generate_name(shm_name_0, id, 0);
-    (void) generate_name(sem_name_1, id, 1);
-    (void) generate_name(sem_name_2, id, 2);
-    (void) generate_name(sem_name_3, id, 3);
+    (void) generate_name(shm_name_0, id, 0); // generates the name for shared-memory
+    (void) generate_name(sem_name_1, id, 1); // generates the name for semaphore-full
+    (void) generate_name(sem_name_2, id, 2); // generates the name for semaphore-empty
 } // end make_name
     
 
@@ -87,7 +84,7 @@ sem_t *sem_open_error_checked(const char *name, int oflag, mode_t mode, unsigned
     sem_t *sem_pointer = sem_open(name, oflag, mode, value);
 
     if (sem_pointer == SEM_FAILED) {
-        fprintf(stderr, "sem_open failed\n");
+        fprintf(stderr, "sem_open failed!\n");
         // error in sem_open() und exit
     }
 
@@ -95,13 +92,37 @@ sem_t *sem_open_error_checked(const char *name, int oflag, mode_t mode, unsigned
 } // end sem_open_error_checked
 
 
-void close_all(int shared_memory, sem_t *sem_mutex, sem_t *sem_full, sem_t *sem_empty) {
-    if (close(shared_memory) == -1) {
-        // error while closing fd
+int shm_open_error_checked(const char *name, int oflag, mode_t mode) {
+    int shared_memory = shm_open(name, oflag, mode);
+
+    if (shared_memory == -1) {
+        // error
     }
 
-    if (sem_close(sem_mutex) == -1) {
+    return shared_memory;
+} // end shm_open_error_checked
+
+
+void ftruncate_error_checked(int fd, off_t length) {
+    if (ftruncate(fd, length) == -1) {
         // error
+    }
+} // end ftruncate_error_checked
+
+
+void *mmap_error_checked(void *addr, size_t length, int prot, int flags, int fd, off_t offset) {
+    void *shared_mem_pointer = mmap(addr, length, prot, flags, fd, offset);
+    
+    if (shared_mem_pointer == MAP_FAILED) {
+        // error
+    }
+    return shared_mem_pointer;
+} // end mmap_error_checked
+
+
+void close_all(int shared_memory, sem_t *sem_full, sem_t *sem_empty) {
+    if (close(shared_memory) == -1) {
+        // error while closing fd
     }
 
     if (sem_close(sem_full) == -1) {
@@ -114,7 +135,7 @@ void close_all(int shared_memory, sem_t *sem_mutex, sem_t *sem_full, sem_t *sem_
 } // end close_all
 
 
-void unlink_sem(char *sem_name_1, char *sem_name_2, char *sem_name_3) {
+void unlink_all_sem(char *sem_name_1, char *sem_name_2) {
     if (sem_unlink(sem_name_1) == -1) {
         // error
     }
@@ -122,11 +143,6 @@ void unlink_sem(char *sem_name_1, char *sem_name_2, char *sem_name_3) {
     if (sem_unlink(sem_name_2) == -1) {
         // error
     }
-
-    if (sem_unlink(sem_name_3) == -1) {
-        // error
-    }
 } // end unlink_sem
-
 
 
