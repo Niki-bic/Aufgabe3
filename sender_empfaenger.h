@@ -17,17 +17,17 @@
 #define TRUE 1
 
 
-char **global_argv;
+extern char **global_argv;
 
-sem_t *g_sem_full;
-sem_t *g_sem_empty;
-int *g_shared_mem_pointer;
-int g_shared_memory;
-unsigned int g_length;
+extern sem_t *g_sem_full;
+extern sem_t *g_sem_empty;
+extern int *g_shared_mem_pointer;
+extern int g_shared_memory;
+extern unsigned int g_length;
 
-char shm_name_0[14]; // name for shared-memory
-char sem_name_1[14]; // name for semaphore-full
-char sem_name_2[14]; // name for semaphore-empty 
+extern char shm_name_0[14]; // name for shared-memory
+extern char sem_name_1[14]; // name for semaphore-full
+extern char sem_name_2[14]; // name for semaphore-empty 
 
 
 char *generate_name(char *name, uid_t id, const int offset);

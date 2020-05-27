@@ -1,9 +1,22 @@
 #include "sender_empfaenger.h"
 
 
+char **global_argv;
+
+sem_t *g_sem_full;
+sem_t *g_sem_empty;
+int *g_shared_mem_pointer;
+int g_shared_memory;
+unsigned int g_length;
+
+char shm_name_0[14]; // name for shared-memory
+char sem_name_1[14]; // name for semaphore-full
+char sem_name_2[14]; // name for semaphore-empty 
+
+
 unsigned int arguments(int argc, char **argv) {
     global_argv = argv;
-    unsigned int length;
+    unsigned int length = 0;
     int opt;
 	
 	if(argc != 3) { // check Eingabe
