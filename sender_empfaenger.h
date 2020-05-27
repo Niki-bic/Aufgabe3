@@ -17,7 +17,7 @@
 #define TRUE 1
 
 
-extern char **global_argv;
+extern char **g_argv;
 
 extern sem_t *g_sem_full;
 extern sem_t *g_sem_empty;
@@ -40,7 +40,7 @@ void ftruncate_errorchecked(int fd, off_t length);
 void make_names(void);
 void *mmap_errorchecked(void *addr, size_t length, int prot, int flags, int fd, off_t offset);
 void perror_and_remove_resources(const char * const string, ...);
-void unlink_all_sem(char *sem_name_1, char *sem_name_2);
+void unlink_all(char *shm_name_0, char *sem_name_1, char *sem_name_2);
 sem_t *sem_open_errorchecked(const char *name, int oflag, mode_t mode, unsigned int value);
 
 

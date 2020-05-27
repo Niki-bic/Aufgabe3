@@ -4,7 +4,7 @@
 int main(int argc, char **argv) {
 
     unsigned int length = arguments(argc, argv); // parst die commandline-argumente mit getopt
-    g_length =length;
+    g_length = length;
 
     make_names(); // generiert die Namen für die Semaphoren und den Shared-Memory
 
@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
             MAP_SHARED, shared_memory, 0);
     g_shared_mem_pointer = shared_mem_pointer;
     
-    int c = '\0'; // char für zeichenweises lesen/schreiben
+    int c = '\0'; // character für zeichenweises lesen/schreiben
     int i = 0;    // Index für shared-memory
 
     while (TRUE) {
@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
         // end critical section
 
         i++;
-        i %= length;
+        i %= length; // weil Ringpuffer
 
         if (c == EOF) {
             break;
@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
     close_all(shared_memory, sem_full, sem_empty);
 
     if (munmap(shared_mem_pointer, length * sizeof(int)) == -1) {
-        perror_and_remove_resources("%s: Error in munmap\n", global_argv[0]);
+        perror_and_remove_resources("%s: Error in munmap\n", g_argv[0]);
     }
 
     // kein sem_unlink(), da das nur ein Prozess machen sollte

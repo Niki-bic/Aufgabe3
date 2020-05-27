@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
     g_shared_mem_pointer = shared_mem_pointer;
 
     
-    int c = '\0'; // char für zeichenweises lesen/schreiben
+    int c = '\0'; // character für zeichenweises lesen/schreiben
     int i = 0;    // Index für shared-memory
 
     while (TRUE) {      
@@ -43,26 +43,24 @@ int main(int argc, char **argv) {
         // end critical section
 
         i++;
-        i %= length;
+        i %= length; // weil Ringpuffer
 
         if (c == EOF) {
             break;
         }
 
-        putchar(c);
+        if (putchar(c) == EOF) {
+            perror_and_remove_resources("%s: Error in putchar\n", g_argv[0]);
+        }
     } // end while (TRUE)
 
     close_all(shared_memory, sem_full, sem_empty);
 
     if (munmap(shared_mem_pointer, length * sizeof(int)) == -1) {
-        perror_and_remove_resources("%s: Error in munmap\n", global_argv[0]);
+        perror_and_remove_resources("%s: Error in munmap\n", g_argv[0]);
     }
 
-    unlink_all_sem(sem_name_1, sem_name_2);
-
-    if (shm_unlink(shm_name_0) == -1) {
-        perror_and_remove_resources("%s: Error in shm_unlink\n", global_argv[0]);
-    }
+    unlink_all(shm_name_0, sem_name_1, sem_name_2);
 
     return EXIT_SUCCESS;
 } // end main
