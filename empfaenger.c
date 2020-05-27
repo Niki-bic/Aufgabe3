@@ -3,7 +3,7 @@
 
 int main(int argc, char **argv) {
 
-    unsigned int length = arguments(argc, argv); // parst die commandline-arguemente mit getopt
+    unsigned int length = arguments(argc, argv); // parst die commandline-argumente mit getopt
 
     make_names(); // generiert die Namen für die Semaphoren und den Shared-Memory
 
@@ -16,6 +16,7 @@ int main(int argc, char **argv) {
    
     int * const shared_mem_pointer = mmap_error_checked(NULL, length * sizeof(int), PROT_READ, \
             MAP_SHARED, shared_memory, 0);
+
     
     int c = '\0'; // char für zeichenweises lesen/schreiben
     int i = 0;    // Index für shared-memory
@@ -48,14 +49,14 @@ int main(int argc, char **argv) {
 
     close_all(shared_memory, sem_full, sem_empty);
 
-    unlink_all_sem(sem_name_1, sem_name_2);
-
     if (munmap(shared_mem_pointer, length * sizeof(int)) == -1) {
-        // error
+        perror_and_remove_resources("%s: Error in munmap\n", global_argv[0]);
     }
 
+    unlink_all_sem(sem_name_1, sem_name_2);
+
     if (shm_unlink(shm_name_0) == -1) {
-        // error
+        perror_and_remove_resources("%s: Error in shm_unlink\n", global_argv[0]);
     }
 
     return EXIT_SUCCESS;
