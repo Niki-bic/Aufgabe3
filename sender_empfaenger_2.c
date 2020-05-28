@@ -1,7 +1,7 @@
 #include "sender_empfaenger_2.h"
 
 
-void init_resources(const int argc, const char * const * const argv, struct resources *r) {
+void init_resources(const int argc, const char * const * const argv, struct resources * const r) {
     r->argc = (int) argc;
     r->argv = (char **) argv;
 
@@ -23,14 +23,12 @@ void init_resources(const int argc, const char * const * const argv, struct reso
         ftruncate_errorchecked(r->shared_memory, r->length * sizeof(int), r);
         r->shared_mem_pointer = mmap_errorchecked(NULL, r->length * sizeof(int), \
                 PROT_WRITE, MAP_SHARED, r->shared_memory, 0, r);
-    }
-    else if (strcmp(argv[0], "./empfaenger") == 0) {
+    } else if (strcmp(argv[0], "./empfaenger") == 0) {
         r->shared_memory = shm_open_errorchecked(r->shm_name_0, O_CREAT | O_RDONLY, S_IRWXU, r);
         ftruncate_errorchecked(r->shared_memory, r->length * sizeof(int), r);
             r->shared_mem_pointer = mmap_errorchecked(NULL, r->length * sizeof(int), \
                 PROT_READ, MAP_SHARED, r->shared_memory, 0, r);
-    }
-    else {
+    } else {
         // error
     }
 } // end init_resources
@@ -39,7 +37,7 @@ void init_resources(const int argc, const char * const * const argv, struct reso
 void check_arguments(struct resources * const r) {
     int opt;
 	
-	if(r->argc != 3) {                                 // check Eingabe
+	if(r->argc != 2 && r->argc != 3) {                           // check Eingabe
         printf_errorchecked(stderr, "Usage: %s -m size\n", r->argv[0]);
         remove_resources(EXIT_FAILURE, r);
     }
@@ -47,7 +45,7 @@ void check_arguments(struct resources * const r) {
     while ((opt = getopt(r->argc, r->argv, ":m:")) != -1) {
         switch (opt) {
             case 'm':
-                r->length = (unsigned long) strtol_errorchecked(optarg, r);
+                r->length = strtol_errorchecked(optarg, r);
                 break;
             default:
                 printf_errorchecked(stderr, "Usage: %s -m size\n", r->argv[0]);
@@ -62,17 +60,25 @@ void check_arguments(struct resources * const r) {
 } // end check_arguments
 
 
-long strtol_errorchecked(const char * const string, struct resources *r){
+unsigned long strtol_errorchecked(const char * const string, struct resources * const r){
 	char *end_ptr;
 	errno = 0;
-	long number = strtol(string, &end_ptr, 10);
+	unsigned long number = (unsigned long) strtoll(string, &end_ptr, 10);
 
-	if (*end_ptr != '\0' || errno != 0) {
-        printf_errorchecked(stderr, "%s: Error in strtol\n", r->argv[0]);
+    if (end_ptr == string) {
+        printf_errorchecked(stderr, "Usage %s not a decimal number\n", r->argv[0]);
         remove_resources(EXIT_FAILURE, r);
-	}
-    else if (number <= 0 || number >= 2147483648) {
-        printf_errorchecked(stderr, "Usage: %s -m size\n", r->argv[0]);
+    } else if (*end_ptr != '\0') {
+        printf_errorchecked(stderr, "Usage: %s extra characters at end of input\n", r->argv[0]);
+        remove_resources(EXIT_FAILURE, r);
+    } else if (number == ULONG_MAX && errno == ERANGE) {
+        printf_errorchecked(stderr, "Usage: %s number out of range\n", r->argv[0]);
+        remove_resources(EXIT_FAILURE, r);
+    } else if (number > ULONG_MAX) {
+        printf_errorchecked(stderr, "Usage: %s number too big\n", r->argv[0]);
+        remove_resources(EXIT_FAILURE, r);
+    } else if (number <= 0 || number >= 2147483648) {
+        printf_errorchecked(stderr, "Usage: %s: not a valid size\n", r->argv[0]);
         remove_resources(EXIT_FAILURE, r);
     }
 
@@ -80,7 +86,7 @@ long strtol_errorchecked(const char * const string, struct resources *r){
 } // end strtol_errorchecked
 
 
-void create_name(char *name, const unsigned int offset, struct resources *r) {
+void create_name(char *name, const unsigned int offset, struct resources * const r) {
 	uid_t user_id = getuid() * 1000 + offset; // getuit() is always successfull
 	char uid_string[8];
 
@@ -95,7 +101,7 @@ void create_name(char *name, const unsigned int offset, struct resources *r) {
     
 
 sem_t *sem_open_errorchecked(const char *name, const int oflag, const mode_t mode, \
-        const unsigned int value, struct resources *r) {
+        const unsigned int value, struct resources * const r) {
     sem_t *sem_pointer = sem_open(name, oflag, mode, value);
 
     if (sem_pointer == SEM_FAILED) {
@@ -107,7 +113,8 @@ sem_t *sem_open_errorchecked(const char *name, const int oflag, const mode_t mod
 } // end sem_open_errorchecked
 
 
-int shm_open_errorchecked(const char *name, const int oflag, const mode_t mode, struct resources *r) {
+int shm_open_errorchecked(const char *name, const int oflag, \
+        const mode_t mode, struct resources * const r) {
     int shared_memory = shm_open(name, oflag, mode);
 
     if (shared_memory == -1) {
@@ -119,7 +126,7 @@ int shm_open_errorchecked(const char *name, const int oflag, const mode_t mode, 
 } // end shm_open_errorchecked
 
 
-void ftruncate_errorchecked(int fd, const off_t length, struct resources *r) {
+void ftruncate_errorchecked(int fd, const off_t length, struct resources * const r) {
     if (ftruncate(fd, length) == -1) {
         // error
     }
@@ -127,7 +134,7 @@ void ftruncate_errorchecked(int fd, const off_t length, struct resources *r) {
 
 
 int *mmap_errorchecked(void *addr, const size_t length, const int prot, const int flags, \
-        const int fd, const off_t offset, struct resources *r) {
+        const int fd, const off_t offset, struct resources * const r) {
     void *shared_mem_pointer = mmap(addr, length, prot, flags, fd, offset);
     
     if (shared_mem_pointer == MAP_FAILED) {
@@ -152,7 +159,7 @@ void printf_errorchecked(FILE * const stream, const char * const string, ...){
 } // end printf_errorchecked
 
 
-void remove_resources(int exit_status, struct resources *r){
+void remove_resources(int exit_status, struct resources * const r){
     if (r->sem_full != NULL) {
         if (sem_close(r->sem_full) == -1) {
             printf_errorchecked(stderr, "%s: Error in sem_close\n", r->argv[0]);
