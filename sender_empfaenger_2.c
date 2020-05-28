@@ -123,7 +123,6 @@ int shm_open_errorchecked(const char *name, int oflag, mode_t mode, struct resou
     if (shared_memory == -1) {
         printf_errorchecked(stderr, "%s: Error in shm_open\n", r->argv[0]);
         remove_resources(r, EXIT_FAILURE);
-         
     }
 
     return shared_memory;
@@ -142,7 +141,7 @@ int *mmap_errorchecked(void *addr, size_t length, int prot, int flags, \
     void *shared_mem_pointer = mmap(addr, length, prot, flags, fd, offset);
     
     if (shared_mem_pointer == MAP_FAILED) {
-        printf_errorchecked(stderr, "%s: Error in shm_open\n", r->argv[0]);
+        printf_errorchecked(stderr, "%s: Error in mmap\n", r->argv[0]);
         remove_resources(r, EXIT_FAILURE);
     }
 
@@ -152,17 +151,17 @@ int *mmap_errorchecked(void *addr, size_t length, int prot, int flags, \
 
 void close_all(struct resources *r) {
     if (close(r->shared_memory) == -1) {
-        printf_errorchecked(stderr, "%s: Error in shm_open\n", r->argv[0]);
+        printf_errorchecked(stderr, "%s: Error in close\n", r->argv[0]);
         remove_resources(r, EXIT_FAILURE);
     }
 
     if (sem_close(r->sem_full) == -1) {
-        printf_errorchecked(stderr, "%s: Error in shm_open\n", r->argv[0]);
+        printf_errorchecked(stderr, "%s: Error in sem_close\n", r->argv[0]);
         remove_resources(r, EXIT_FAILURE);
     }
 
     if (sem_close(r->sem_empty) == -1) {
-        printf_errorchecked(stderr, "%s: Error in shm_open\n", r->argv[0]);
+        printf_errorchecked(stderr, "%s: Error in sem_close\n", r->argv[0]);
         remove_resources(r, EXIT_FAILURE);
     }
      
@@ -209,7 +208,10 @@ void printf_errorchecked(FILE *stream, const char * const string, ...){
 	va_list array;
 	va_start(array, string);
 
-	vfprintf(stream, string, array); 
+	if(vfprintf(stream, string, array) < 0){
+		fprintf(stderr, "Error in vfprintf()!\n");
+		exit(EXIT_FAILURE);
+	}
 
 	va_end(array);
 } // end printf_errorchecked
@@ -230,16 +232,16 @@ void remove_resources(struct resources *r, int exit_status){
         }
     }
 
-    if (r->shared_mem_pointer != NULL) {
-        if (munmap(r->shared_mem_pointer, r->length * sizeof(int)) == -1) {
-            printf_errorchecked(stderr, "%s: Error in munmap\n", r->argv[0]);
+    if (r->shared_memory != 0) {
+        if (close(r->shared_memory) == -1) {
+            printf_errorchecked(stderr, "%s: Error in close\n", r->argv[0]);
             exit_status = EXIT_FAILURE;
         }
     }
 
-    if (r->shared_memory != 0) {
-        if (close(r->shared_memory) == -1) {
-            printf_errorchecked(stderr, "%s: Error in close\n", r->argv[0]);
+    if (r->shared_mem_pointer != NULL) {
+        if (munmap(r->shared_mem_pointer, r->length * sizeof(int)) == -1) {
+            printf_errorchecked(stderr, "%s: Error in munmap\n", r->argv[0]);
             exit_status = EXIT_FAILURE;
         }
     }

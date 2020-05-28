@@ -39,14 +39,7 @@ int main(int argc, char **argv) {
         }
     } // end while (TRUE)
 
-    close_all(&r);
-
-    if (munmap(r.shared_mem_pointer, r.length * sizeof(int)) == -1) {
-        printf_errorchecked(stderr, "%s: Error in sem_munmap\n", r.argv[0]);
-        remove_resources(&r, EXIT_FAILURE);
-    }
-
-    unlink_all(&r);
+    remove_resources(&r, EXIT_SUCCESS);
 
     return EXIT_SUCCESS;
 } // end main
