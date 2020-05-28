@@ -149,43 +149,6 @@ int *mmap_errorchecked(void *addr, size_t length, int prot, int flags, \
 } // end mmap_errorchecked
 
 
-void close_all(struct resources *r) {
-    if (close(r->shared_memory) == -1) {
-        printf_errorchecked(stderr, "%s: Error in close\n", r->argv[0]);
-        remove_resources(r, EXIT_FAILURE);
-    }
-
-    if (sem_close(r->sem_full) == -1) {
-        printf_errorchecked(stderr, "%s: Error in sem_close\n", r->argv[0]);
-        remove_resources(r, EXIT_FAILURE);
-    }
-
-    if (sem_close(r->sem_empty) == -1) {
-        printf_errorchecked(stderr, "%s: Error in sem_close\n", r->argv[0]);
-        remove_resources(r, EXIT_FAILURE);
-    }
-     
-} // end close_all
-
-
-void unlink_all(struct resources *r) {
-    if (shm_unlink(r->shm_name_0) == -1) {
-        printf_errorchecked(stderr, "%s: Error in shm_unlink\n", r->argv[0]);
-        remove_resources(r, EXIT_FAILURE);
-    }
-
-    if (sem_unlink(r->sem_name_1) == -1) {
-        printf_errorchecked(stderr, "%s: Error in shm_unlink\n", r->argv[0]);
-        remove_resources(r, EXIT_FAILURE);
-    }
-
-    if (sem_unlink(r->sem_name_2) == -1) {
-        printf_errorchecked(stderr, "%s: Error in sem_unlink\n", r->argv[0]);
-        remove_resources(r, EXIT_FAILURE);
-    }
-} // end unlink_all
-
-
 long strtol_errorchecked(const char * const string, struct resources *r){
 	char *end_ptr;
 	errno = 0;
@@ -246,24 +209,28 @@ void remove_resources(struct resources *r, int exit_status){
         }
     }
 
-    if (r->shm_name_0 != NULL) {
-        if (shm_unlink(r->shm_name_0) == -1) {
-            printf_errorchecked(stderr, "%s: Error in shm_unlink\n", r->argv[0]);
-            exit_status = EXIT_FAILURE;
-        }
-    }
 
-    if (r->sem_name_1 != NULL) {
-        if (sem_unlink(r->sem_name_1) == -1) {
-            printf_errorchecked(stderr, "%s: Error in sem_unlink\n", r->argv[0]);
-            exit_status = EXIT_FAILURE;
+    // Nur der empfaenger oder im Fehlerfall soll ungelinkt werden
+    if (strcmp(r->argv[0], "./empfaenger") == 0 || exit_status == EXIT_FAILURE) {
+        if (r->shm_name_0 != NULL) {
+            if (shm_unlink(r->shm_name_0) == -1) {
+                printf_errorchecked(stderr, "%s: Error in shm_unlink\n", r->argv[0]);
+                exit_status = EXIT_FAILURE;
+            }
         }
-    }
 
-    if (r->sem_name_2 != NULL) {
-        if (sem_unlink(r->sem_name_2) == -1) {
-            printf_errorchecked(stderr, "%s: Error in sem_unlink\n", r->argv[0]);
-            exit_status = EXIT_FAILURE;
+        if (r->sem_name_1 != NULL) {
+            if (sem_unlink(r->sem_name_1) == -1) {
+                printf_errorchecked(stderr, "%s: Error in sem_unlink\n", r->argv[0]);
+                exit_status = EXIT_FAILURE;
+            }
+        }
+
+        if (r->sem_name_2 != NULL) {
+            if (sem_unlink(r->sem_name_2) == -1) {
+                printf_errorchecked(stderr, "%s: Error in sem_unlink\n", r->argv[0]);
+                exit_status = EXIT_FAILURE;
+            }
         }
     }
 

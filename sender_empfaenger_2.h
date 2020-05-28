@@ -46,8 +46,6 @@ int *mmap_errorchecked(void *addr, size_t length, int prot, int flags, \
         int fd, off_t offset, struct resources *r);
 void printf_errorchecked(FILE *stream, const char * const string, ...);
 void remove_resources(struct resources *r, int exit_status);
-void close_all(struct resources *r);
-void unlink_all(struct resources *r);
 
 
 #endif

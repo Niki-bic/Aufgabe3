@@ -5,7 +5,7 @@ int main(int argc, char **argv) {
 
     struct resources r = {0}; // initial sind alle auf 0 bzw NULL
 
-    init_resources(&r, argc, argv);
+    init_resources(&r, argc, argv); // initialisiert die Struktur
     
     int c = '\0'; // character für zeichenweises lesen/schreiben
     int i = 0;    // Index für shared-memory
