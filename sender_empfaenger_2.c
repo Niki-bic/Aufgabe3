@@ -5,8 +5,16 @@ void init_resources(struct resources *r, int argc, char ** argv) {
     r->argc = argc;
     r->argv = argv;
 
-    arguments(r);
-    make_names(r);
+    check_arguments(r);
+
+    strcat(r->shm_name_0, "/shm_");
+    strcat(r->sem_name_1, "/sem_");
+    strcat(r->sem_name_2, "/sem_");
+
+	create_name(r->shm_name_0, 0);
+    create_name(r->sem_name_1, 1);
+    create_name(r->sem_name_2, 2);
+
 
     r->sem_full  = sem_open_errorchecked(r->sem_name_1, O_CREAT, S_IRWXU, 0, r);
     r->sem_empty = sem_open_errorchecked(r->sem_name_2, O_CREAT, S_IRWXU, r->length, r);
@@ -29,7 +37,7 @@ void init_resources(struct resources *r, int argc, char ** argv) {
 } // end init_resources
 
 
-void arguments(struct resources *r) {
+void check_arguments(struct resources *r) {
     int opt;
 	
 	if(r->argc != 3) { // check Eingabe
@@ -52,57 +60,18 @@ void arguments(struct resources *r) {
         printf_errorchecked(stderr, "Usage: %s -m size\n", r->argv[0]);
         remove_resources(r, EXIT_FAILURE);
     }
-} // end arguments
+} // end check_arguments
 
 
-void make_names(struct resources *r)  {
-    const uid_t id = getuid();
-    strcat(r->shm_name_0, "/shm_");
-    strcat(r->sem_name_1, "/sem_");
-    strcat(r->sem_name_2, "/sem_");
-    (void) generate_name(r->shm_name_0, id, 0); // generates the name for shared-memory
-    (void) generate_name(r->sem_name_1, id, 1); // generates the name for semaphore-full
-    (void) generate_name(r->sem_name_2, id, 2); // generates the name for semaphore-empty
-} // end make_name
+void create_name(char *name, unsigned int offset) {
+	uid_t user_id = getuid() * 1000 + offset; // error-checking noch einbauen
+	char uid_string[8];
+
+	snprintf(uid_string, 8, "%d", user_id);
+	strcat(name, uid_string);
+    name[strlen(name)] = '\0';
+} // end create_name
     
-
-char *generate_name(char *name, uid_t id, const int offset) {
-    id *= 1000;
-    id += offset;
-
-    int num_digits = (int) log10((double) id) + 1;
-    char *id_string = calloc(num_digits + 1, sizeof(char));
-
-    int i = 0;
-    while (id) {
-        id_string[i] = id % 10 + 48;
-        i++;
-        id /= 10;
-    }
-    id_string[num_digits] = '\0';
-
-    id_string = reverse_string(id_string);
-
-    strcat(name, id_string);
-    free(id_string);
-
-    return name;
-} // end generate_name
-
-
-char *reverse_string(char *string) {
-    int length = strlen(string);
-    char temp;
-
-    for (int i = 0; i < length / 2; i++) {
-        temp = string[i];
-        string[i] = string[length - 1 - i];
-        string[length - 1 - i] = temp;
-    }
-
-    return string;
-} // end reverse string
-
 
 sem_t *sem_open_errorchecked(const char *name, int oflag, mode_t mode, \
         unsigned int value, struct resources *r) {

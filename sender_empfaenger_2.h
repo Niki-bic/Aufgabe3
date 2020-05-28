@@ -33,11 +33,9 @@ struct resources{
 
 
 void init_resources(struct resources *r, int argc, char **argv);
-void arguments(struct resources *r);
+void check_arguments(struct resources *r);
 long strtol_errorchecked(const char * const string, struct resources *r);
-void make_names(struct resources *r);
-char *generate_name(char *name, uid_t id, const int offset);
-char *reverse_string(char *string);
+void create_name(char *name, unsigned int offset);
 sem_t *sem_open_errorchecked(const char *name, int oflag, mode_t mode, \
         unsigned int value, struct resources *r);
 int shm_open_errorchecked(const char *name, int oflag, mode_t mode, struct resources *r);
