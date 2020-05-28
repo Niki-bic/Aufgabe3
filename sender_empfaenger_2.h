@@ -30,17 +30,18 @@ struct resources{
 };
 
 
-void init_resources(int argc, char **argv, struct resources *r);
-void check_arguments(struct resources *r);
+void init_resources(const int argc, const char * const * const argv, struct resources *r);
+void check_arguments(struct resources * const r);
 long strtol_errorchecked(const char * const string, struct resources *r);
-void create_name(char *name, unsigned int offset, struct resources *r);
-sem_t *sem_open_errorchecked(const char *name, int oflag, mode_t mode, \
-        unsigned int value, struct resources *r);
-int shm_open_errorchecked(const char *name, int oflag, mode_t mode, struct resources *r);
-void ftruncate_errorchecked(int fd, off_t length, struct resources *r);
-int *mmap_errorchecked(void *addr, size_t length, int prot, int flags, \
-        int fd, off_t offset, struct resources *r);
-void printf_errorchecked(FILE *stream, const char * const string, ...);
+void create_name(char *name, const unsigned int offset, struct resources *r);
+sem_t *sem_open_errorchecked(const char * const name, const int oflag, \
+        const mode_t mode, const unsigned int value, struct resources *r);
+int shm_open_errorchecked(const char *name, const int oflag, \
+        const mode_t mode, struct resources *r);
+void ftruncate_errorchecked(int fd, const off_t length, struct resources *r);
+int *mmap_errorchecked(void *addr, const size_t length, const int prot, \
+        const int flags, const int fd, const off_t offset, struct resources *r);
+void printf_errorchecked(FILE * const stream, const char * const string, ...);
 void remove_resources(int exit_status, struct resources *r);
 
 

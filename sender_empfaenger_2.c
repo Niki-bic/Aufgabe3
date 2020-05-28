@@ -1,9 +1,9 @@
 #include "sender_empfaenger_2.h"
 
 
-void init_resources(int argc, char ** argv, struct resources *r) {
-    r->argc = argc;
-    r->argv = argv;
+void init_resources(const int argc, const char * const * const argv, struct resources *r) {
+    r->argc = (int) argc;
+    r->argv = (char **) argv;
 
     check_arguments(r);
 
@@ -36,7 +36,7 @@ void init_resources(int argc, char ** argv, struct resources *r) {
 } // end init_resources
 
 
-void check_arguments(struct resources *r) {
+void check_arguments(struct resources * const r) {
     int opt;
 	
 	if(r->argc != 3) { // check Eingabe
@@ -62,65 +62,6 @@ void check_arguments(struct resources *r) {
 } // end check_arguments
 
 
-void create_name(char *name, unsigned int offset, struct resources *r) {
-	uid_t user_id = getuid() * 1000 + offset; // This function is always successfull
-	char uid_string[8];
-
-	if (snprintf(uid_string, 8, "%d", user_id) < 0) {
-        printf_errorchecked(stderr, "Usage: %s -m size\n", r->argv[0]);
-        remove_resources(EXIT_FAILURE, r);
-    }
-        
-	strcat(name, uid_string);
-    name[strlen(name)] = '\0';
-} // end create_name
-    
-
-sem_t *sem_open_errorchecked(const char *name, int oflag, mode_t mode, \
-        unsigned int value, struct resources *r) {
-    sem_t *sem_pointer = sem_open(name, oflag, mode, value);
-
-    if (sem_pointer == SEM_FAILED) {
-        printf_errorchecked(stderr, "%s: Error in sem_open\n", r->argv[0]);
-        remove_resources(EXIT_FAILURE, r);
-    }
-
-    return sem_pointer;
-} // end sem_open_errorchecked
-
-
-int shm_open_errorchecked(const char *name, int oflag, mode_t mode, struct resources *r) {
-    int shared_memory = shm_open(name, oflag, mode);
-
-    if (shared_memory == -1) {
-        printf_errorchecked(stderr, "%s: Error in shm_open\n", r->argv[0]);
-        remove_resources(EXIT_FAILURE, r);
-    }
-
-    return shared_memory;
-} // end shm_open_errorchecked
-
-
-void ftruncate_errorchecked(int fd, off_t length, struct resources *r) {
-    if (ftruncate(fd, length) == -1) {
-        // error
-    }
-} // end ftruncate_errorchecked
-
-
-int *mmap_errorchecked(void *addr, size_t length, int prot, int flags, \
-        int fd, off_t offset, struct resources *r) {
-    void *shared_mem_pointer = mmap(addr, length, prot, flags, fd, offset);
-    
-    if (shared_mem_pointer == MAP_FAILED) {
-        printf_errorchecked(stderr, "%s: Error in mmap\n", r->argv[0]);
-        remove_resources(EXIT_FAILURE, r);
-    }
-
-    return shared_mem_pointer;
-} // end mmap_errorchecked
-
-
 long strtol_errorchecked(const char * const string, struct resources *r){
 	char *end_ptr;
 	errno = 0;
@@ -139,7 +80,66 @@ long strtol_errorchecked(const char * const string, struct resources *r){
 } // end strtol_errorchecked
 
 
-void printf_errorchecked(FILE *stream, const char * const string, ...){
+void create_name(char *name, const unsigned int offset, struct resources *r) {
+	uid_t user_id = getuid() * 1000 + offset; // This function is always successfull
+	char uid_string[8];
+
+	if (snprintf(uid_string, 8, "%d", user_id) < 0) {
+        printf_errorchecked(stderr, "Usage: %s -m size\n", r->argv[0]);
+        remove_resources(EXIT_FAILURE, r);
+    }
+        
+	strcat(name, uid_string);
+    name[strlen(name)] = '\0';
+} // end create_name
+    
+
+sem_t *sem_open_errorchecked(const char *name, const int oflag, const mode_t mode, \
+        const unsigned int value, struct resources *r) {
+    sem_t *sem_pointer = sem_open(name, oflag, mode, value);
+
+    if (sem_pointer == SEM_FAILED) {
+        printf_errorchecked(stderr, "%s: Error in sem_open\n", r->argv[0]);
+        remove_resources(EXIT_FAILURE, r);
+    }
+
+    return sem_pointer;
+} // end sem_open_errorchecked
+
+
+int shm_open_errorchecked(const char *name, const int oflag, const mode_t mode, struct resources *r) {
+    int shared_memory = shm_open(name, oflag, mode);
+
+    if (shared_memory == -1) {
+        printf_errorchecked(stderr, "%s: Error in shm_open\n", r->argv[0]);
+        remove_resources(EXIT_FAILURE, r);
+    }
+
+    return shared_memory;
+} // end shm_open_errorchecked
+
+
+void ftruncate_errorchecked(int fd, const off_t length, struct resources *r) {
+    if (ftruncate(fd, length) == -1) {
+        // error
+    }
+} // end ftruncate_errorchecked
+
+
+int *mmap_errorchecked(void *addr, const size_t length, const int prot, const int flags, \
+        const int fd, const off_t offset, struct resources *r) {
+    void *shared_mem_pointer = mmap(addr, length, prot, flags, fd, offset);
+    
+    if (shared_mem_pointer == MAP_FAILED) {
+        printf_errorchecked(stderr, "%s: Error in mmap\n", r->argv[0]);
+        remove_resources(EXIT_FAILURE, r);
+    }
+
+    return shared_mem_pointer;
+} // end mmap_errorchecked
+
+
+void printf_errorchecked(FILE * const stream, const char * const string, ...){
 	va_list array;
 	va_start(array, string);
 

@@ -1,7 +1,7 @@
 #include "sender_empfaenger_2.h"
 
 
-int main(int argc, char **argv) {
+int main(const int argc, const char * const * const argv) {
 
     struct resources r = {0}; // initial sind alle auf 0 bzw NULL
 
@@ -36,8 +36,6 @@ int main(int argc, char **argv) {
     } // end while (TRUE)
 
     remove_resources(EXIT_SUCCESS, &r);
-
-    return EXIT_SUCCESS;
 } // end main
 
 
