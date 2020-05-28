@@ -1,7 +1,7 @@
 #include "sender_empfaenger_2.h"
 
 
-void init_resources(struct resources *r, int argc, char ** argv) {
+void init_resources(int argc, char ** argv, struct resources *r) {
     r->argc = argc;
     r->argv = argv;
 
@@ -11,10 +11,9 @@ void init_resources(struct resources *r, int argc, char ** argv) {
     strcat(r->sem_name_1, "/sem_");
     strcat(r->sem_name_2, "/sem_");
 
-	create_name(r->shm_name_0, 0);
-    create_name(r->sem_name_1, 1);
-    create_name(r->sem_name_2, 2);
-
+	create_name(r->shm_name_0, 0, r);
+    create_name(r->sem_name_1, 1, r);
+    create_name(r->sem_name_2, 2, r);
 
     r->sem_full  = sem_open_errorchecked(r->sem_name_1, O_CREAT, S_IRWXU, 0, r);
     r->sem_empty = sem_open_errorchecked(r->sem_name_2, O_CREAT, S_IRWXU, r->length, r);
@@ -42,7 +41,7 @@ void check_arguments(struct resources *r) {
 	
 	if(r->argc != 3) { // check Eingabe
         printf_errorchecked(stderr, "Usage: %s -m size\n", r->argv[0]);
-        remove_resources(r, EXIT_FAILURE);
+        remove_resources(EXIT_FAILURE, r);
     }
 
     while ((opt = getopt(r->argc, r->argv, ":m:")) != -1) {
@@ -52,22 +51,26 @@ void check_arguments(struct resources *r) {
                 break;
             default:
                 printf_errorchecked(stderr, "Usage: %s -m size\n", r->argv[0]);
-                remove_resources(r, EXIT_FAILURE);
+                remove_resources(EXIT_FAILURE, r);
         }
     }
 	
     if (optind != r->argc) { // check Eingabe
         printf_errorchecked(stderr, "Usage: %s -m size\n", r->argv[0]);
-        remove_resources(r, EXIT_FAILURE);
+        remove_resources(EXIT_FAILURE, r);
     }
 } // end check_arguments
 
 
-void create_name(char *name, unsigned int offset) {
-	uid_t user_id = getuid() * 1000 + offset; // error-checking noch einbauen
+void create_name(char *name, unsigned int offset, struct resources *r) {
+	uid_t user_id = getuid() * 1000 + offset; // This function is always successfull
 	char uid_string[8];
 
-	snprintf(uid_string, 8, "%d", user_id);
+	if (snprintf(uid_string, 8, "%d", user_id) < 0) {
+        printf_errorchecked(stderr, "Usage: %s -m size\n", r->argv[0]);
+        remove_resources(EXIT_FAILURE, r);
+    }
+        
 	strcat(name, uid_string);
     name[strlen(name)] = '\0';
 } // end create_name
@@ -79,7 +82,7 @@ sem_t *sem_open_errorchecked(const char *name, int oflag, mode_t mode, \
 
     if (sem_pointer == SEM_FAILED) {
         printf_errorchecked(stderr, "%s: Error in sem_open\n", r->argv[0]);
-        remove_resources(r, EXIT_FAILURE);
+        remove_resources(EXIT_FAILURE, r);
     }
 
     return sem_pointer;
@@ -91,7 +94,7 @@ int shm_open_errorchecked(const char *name, int oflag, mode_t mode, struct resou
 
     if (shared_memory == -1) {
         printf_errorchecked(stderr, "%s: Error in shm_open\n", r->argv[0]);
-        remove_resources(r, EXIT_FAILURE);
+        remove_resources(EXIT_FAILURE, r);
     }
 
     return shared_memory;
@@ -111,7 +114,7 @@ int *mmap_errorchecked(void *addr, size_t length, int prot, int flags, \
     
     if (shared_mem_pointer == MAP_FAILED) {
         printf_errorchecked(stderr, "%s: Error in mmap\n", r->argv[0]);
-        remove_resources(r, EXIT_FAILURE);
+        remove_resources(EXIT_FAILURE, r);
     }
 
     return shared_mem_pointer;
@@ -125,11 +128,11 @@ long strtol_errorchecked(const char * const string, struct resources *r){
 
 	if (*end_ptr != '\0' || errno != 0) {
         printf_errorchecked(stderr, "%s: Error in strtol\n", r->argv[0]);
-        remove_resources(r, EXIT_FAILURE);
+        remove_resources(EXIT_FAILURE, r);
 	}
     else if (number <= 0 || number >= 2147483648) {
         printf_errorchecked(stderr, "Usage: %s -m size\n", r->argv[0]);
-        remove_resources(r, EXIT_FAILURE);
+        remove_resources(EXIT_FAILURE, r);
     }
 
 	return number;
@@ -149,7 +152,7 @@ void printf_errorchecked(FILE *stream, const char * const string, ...){
 } // end printf_errorchecked
 
 
-void remove_resources(struct resources *r, int exit_status){
+void remove_resources(int exit_status, struct resources *r){
     if (r->sem_full != NULL) {
         if (sem_close(r->sem_full) == -1) {
             printf_errorchecked(stderr, "%s: Error in sem_close\n", r->argv[0]);

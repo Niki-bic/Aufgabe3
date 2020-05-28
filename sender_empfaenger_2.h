@@ -3,9 +3,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <math.h>
 #include <semaphore.h>
-#include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,10 +30,10 @@ struct resources{
 };
 
 
-void init_resources(struct resources *r, int argc, char **argv);
+void init_resources(int argc, char **argv, struct resources *r);
 void check_arguments(struct resources *r);
 long strtol_errorchecked(const char * const string, struct resources *r);
-void create_name(char *name, unsigned int offset);
+void create_name(char *name, unsigned int offset, struct resources *r);
 sem_t *sem_open_errorchecked(const char *name, int oflag, mode_t mode, \
         unsigned int value, struct resources *r);
 int shm_open_errorchecked(const char *name, int oflag, mode_t mode, struct resources *r);
@@ -43,7 +41,7 @@ void ftruncate_errorchecked(int fd, off_t length, struct resources *r);
 int *mmap_errorchecked(void *addr, size_t length, int prot, int flags, \
         int fd, off_t offset, struct resources *r);
 void printf_errorchecked(FILE *stream, const char * const string, ...);
-void remove_resources(struct resources *r, int exit_status);
+void remove_resources(int exit_status, struct resources *r);
 
 
 #endif
