@@ -5,7 +5,7 @@ void init_resources(const int argc, const char * const * const argv, struct reso
     r->argc = (int) argc;
     r->argv = (char **) argv;
 
-    check_arguments(r);
+    check_arguments(r);                         // check arguments and initialize r->length
 
     strcat(r->shm_name_0, "/shm_");
     strcat(r->sem_name_1, "/sem_");
@@ -39,7 +39,7 @@ void init_resources(const int argc, const char * const * const argv, struct reso
 void check_arguments(struct resources * const r) {
     int opt;
 	
-	if(r->argc != 3) { // check Eingabe
+	if(r->argc != 3) {                                 // check Eingabe
         printf_errorchecked(stderr, "Usage: %s -m size\n", r->argv[0]);
         remove_resources(EXIT_FAILURE, r);
     }
@@ -55,7 +55,7 @@ void check_arguments(struct resources * const r) {
         }
     }
 	
-    if (optind != r->argc) { // check Eingabe
+    if (optind != r->argc) {                           // check Eingabe
         printf_errorchecked(stderr, "Usage: %s -m size\n", r->argv[0]);
         remove_resources(EXIT_FAILURE, r);
     }
@@ -81,7 +81,7 @@ long strtol_errorchecked(const char * const string, struct resources *r){
 
 
 void create_name(char *name, const unsigned int offset, struct resources *r) {
-	uid_t user_id = getuid() * 1000 + offset; // This function is always successfull
+	uid_t user_id = getuid() * 1000 + offset; // getuit() is always successfull
 	char uid_string[8];
 
 	if (snprintf(uid_string, 8, "%d", user_id) < 0) {
@@ -182,7 +182,7 @@ void remove_resources(int exit_status, struct resources *r){
     }
 
 
-    // Nur der empfaenger oder im Fehlerfall soll ungelinkt werden
+    // Nur im Empfänger oder im Fehlerfall soll ungelinkt werden
     if (strcmp(r->argv[0], "./empfaenger") == 0 || exit_status == EXIT_FAILURE) {
         if (r->shm_name_0 != NULL) {
             if (shm_unlink(r->shm_name_0) == -1) {
