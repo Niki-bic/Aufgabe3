@@ -1,7 +1,5 @@
 #include "sender_empfaenger.h"
 
-#define TRUE 1
-
 
 int main(const int argc, const char * const * const argv) {
     struct resources r = {0};                   // setting all members to 0

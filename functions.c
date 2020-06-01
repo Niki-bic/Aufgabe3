@@ -175,11 +175,11 @@ static int *mmap_errorchecked(void *addr, const size_t length, const int prot, \
 } // end mmap_errorchecked
 
 
-void printf_errorchecked(FILE * const stream, const char * const string, ...){
+void printf_errorchecked(FILE * const stream, const char * const string, ...) {
 	va_list array;
 	va_start(array, string);
 
-	if(vfprintf(stream, string, array) < 0){
+	if (vfprintf(stream, string, array) < 0) {
 		fprintf(stderr, "Error in vfprintf()!\n");
 		exit(EXIT_FAILURE);
 	}
@@ -188,7 +188,7 @@ void printf_errorchecked(FILE * const stream, const char * const string, ...){
 } // end printf_errorchecked
 
 
-void remove_resources(int exit_status, struct resources * const r){
+void remove_resources(int exit_status, struct resources * const r) {
     if (r->sem_full != NULL) {
         if (sem_close(r->sem_full) == -1) {
             printf_errorchecked(stderr, "%s: Error in sem_close\n", r->argv[0]);

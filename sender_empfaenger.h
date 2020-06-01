@@ -8,6 +8,7 @@
 
 
 #define NAME_LEN 14
+#define TRUE 1
 
 
 struct resources{
