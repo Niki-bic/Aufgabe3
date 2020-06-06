@@ -4,9 +4,9 @@
 #
 # authors:
 #
-# Binder Patrik         	<ic19b030@technikum-wien.at>
-# Ferchenbauer Nikolaus		<ic19b013@technikum-wien.at>
-# Pittner Stefan        	<ic19b003@technikum-wien.at>
+# Binder Patrik             <ic19b030@technikum-wien.at>
+# Ferchenbauer Nikolaus     <ic19b013@technikum-wien.at>
+# Pittner Stefan            <ic19b003@technikum-wien.at>
 # @date 2020/01/06
 #
 # @version 1.0.0
@@ -53,7 +53,6 @@ distclean:
 cleanall:
 	$(RM) -r $(EXEC) $(OBJ) $(DOC)
 
-#
 # rules:
 
 sender: sender.o functions.o
@@ -62,10 +61,7 @@ sender: sender.o functions.o
 empfaenger: empfaenger.o functions.o
 	$(CC) -o $@  $^  $(TFLAGS)
 
-%.o: %.c
+%.o: %.c $(HEADER)
 	$(CC) $(CFLAGS)  $<
 
-
 # --------------------------------------------------------------------------
-
-
