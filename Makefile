@@ -1,5 +1,5 @@
 # @file Makefile
-# BES sender_empfaenger
+# BES sender/empfaenger
 # Projekt 3
 #
 # authors:

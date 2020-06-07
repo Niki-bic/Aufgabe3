@@ -1,3 +1,25 @@
+/**
+ * @file functions.c
+ * BES - sender/empfaenger
+ * Projekt 3
+ *
+ * Gruppe 13
+ *
+ * @author Binder Patrik         <ic19b030@technikum-wien.at>
+ * @author Ferchenbauer Nikolaus <ic19b013@technikum-wien.at>
+ * @author Pittner Stefan        <ic19b003@technikum-wien.at>
+ * @date 2020/06/07
+ *
+ * @version 1.x
+ *
+ * @todo nothing
+ *
+ */
+
+/**
+ * -------------------------------------------------------------- includes --
+ */
+
 #include "sender_empfaenger.h"
 
 
@@ -16,6 +38,9 @@
 #define SHM_MAX 2147483648
 #define UID_LEN 8 
 
+/**
+ * ------------------------------------------------------------- functions --
+ */
 
 static void check_arguments(struct resources * const r);
 static unsigned long strtol_errorchecked(const char * const string, struct resources * const r);
@@ -29,7 +54,16 @@ static void ftruncate_errorchecked(int fd, const off_t length, struct resources 
 static int *mmap_errorchecked(void *addr, const size_t length, const int prot, \
         const int flags, const int fd, const off_t offset, struct resources * const r);
 
-
+/**
+ * \brief Initiate needed resources.
+ * @details This function initializes all needed variables.
+ *
+ * \param argc 
+ * \param argv
+ * \param r struct with bundled parameters
+ *
+ * \return None
+ */
 // initializes all members of structure r
 void init_resources(const int argc, const char * const * const argv, struct resources * const r) {
     r->argc = (int) argc;
@@ -60,7 +94,16 @@ void init_resources(const int argc, const char * const * const argv, struct reso
     }
 } // end init_resources
 
-
+/**
+ * \brief Check input arguments.
+ * @details This function checks the arguments passed 
+ * on when the main function is called and determines
+ * the length of the shared memory.
+ *
+ * \param r struct with bundled parameters
+ *
+ * \return None
+ */
 // check the commanline arguments and initialize r->length
 static void check_arguments(struct resources * const r) {
     int opt;
@@ -88,7 +131,20 @@ static void check_arguments(struct resources * const r) {
     }
 } // end check_arguments
 
-
+/**
+ * \brief Check memory space input length with strtol and length of memory.
+ * @details This function checks if the input 
+ * parameters are valid. It checks either if it is a number,
+ * if it is out of range, if it ist too big, if it has not a 
+ * valid size or if characters are found in the string
+ * instead of nimbers.
+ * 
+ * \param string optarg argument
+ * \param r struct with bundled parameters
+ *
+ * \return value of strtol
+ * \retval number
+ */
 // convert string to unsigned long
 static unsigned long strtol_errorchecked(const char * const string, struct resources * const r){
 	char *end_ptr;
@@ -115,7 +171,17 @@ static unsigned long strtol_errorchecked(const char * const string, struct resou
 	return number;
 } // end strtol_errorchecked
 
-
+/**
+ * \brief Create name for semaphores.
+ * @details This function creates the name for the semaphores.
+ * 
+ * \param name variable to initialize from struct
+ * \param offset value specified by the guideline
+ * \param prefix name specified
+ * \param r struct with bundled parameters
+ *
+ * \return None
+ */
 // create name for the semaphore and shared memory
 static void create_name(char *name, const unsigned int offset, const char * const prefix, \
         struct resources * const r) {
@@ -133,7 +199,20 @@ static void create_name(char *name, const unsigned int offset, const char * cons
     name[PREFIX_LEN + UID_LEN] = '\0';
 } // end create_name
     
-
+/**
+ * \brief Check memory space input length with strtol and length of memory.
+ * @details This function checks if the input 
+ * parameters are valid. It checks either if it is a number,
+ * if it is out of range, if it ist too big, if it has not a 
+ * valid size or if characters are found in the string
+ * instead of numbers. It removes all resources in case of an error.
+ * 
+ * \param string optarg argument
+ * \param r struct with bundled parameters
+ *
+ * \return value of strtol
+ * \retval sem_pointer
+ */
 // create or open semaphore
 static sem_t *sem_open_errorchecked(const char * const name, const int oflag, \
         const mode_t mode, const unsigned int value, struct resources * const r) {
@@ -147,7 +226,17 @@ static sem_t *sem_open_errorchecked(const char * const name, const int oflag, \
     return sem_pointer;
 } // end sem_open_errorchecked
 
-
+/**
+ * \brief Create shared memory if needed.
+ * @details This function creates and opens a new, 
+ * or opens an existing, POSIX shared memory object.
+ * 
+ * \param string optarg argument
+ * \param r struct with bundled parameters
+ *
+ * \return returnvalue of shm_open 
+ * \retval shared_memory
+ */
 // create or open shared-memory
 static int shm_open_errorchecked(const char * const name, const int oflag, \
         const mode_t mode, struct resources * const r) {
@@ -161,7 +250,17 @@ static int shm_open_errorchecked(const char * const name, const int oflag, \
     return shared_memory;
 } // end shm_open_errorchecked
 
-
+/**
+ * \brief Check ftruncate.
+ * @details This function is called by init_resources, it checks
+ * ftruncate for errors and removes all resources in case of an error.
+ *
+ * \param fd file descriptor from shm_open
+ * \param length shared memory size
+ * \param r struct with bundled parameters
+ *
+ * \return None
+ */
 // setting the size of the shared-memory
 static void ftruncate_errorchecked(int fd, const off_t length, struct resources * const r) {
     errno = 0;
@@ -172,7 +271,22 @@ static void ftruncate_errorchecked(int fd, const off_t length, struct resources 
     }
 } // end ftruncate_errorchecked
 
-
+/**
+ * \brief Check mmap for errors.
+ * @details This function is called by init_resources, it
+ * checks mmap for errors and removes all resources in case of an error.
+ *
+ * \param addr virtual address space of the calling process
+ * \param length shared memory mapping length
+ * \param prot desired memory protection
+ * \param flags determines whether updates to the mapping are visible
+ * \param fd file descriptor of th shared memory
+ * \param offset starting point in the file referred to by the file descriptor
+ * \param r struct with bundled parameters
+ *
+ * \return returnvalue of mmap
+ * \retval shared_mem_pointer 
+ */
 // map the shared-memory into the virtual-memory
 static int *mmap_errorchecked(void *addr, const size_t length, const int prot, \
         const int flags, const int fd, const off_t offset, struct resources * const r) {
@@ -186,7 +300,16 @@ static int *mmap_errorchecked(void *addr, const size_t length, const int prot, \
     return shared_mem_pointer;
 } // end mmap_errorchecked
 
-
+/**
+ * \brief Check printf for errors.
+ * @details This function checks printf for errors.
+ * 
+ * \param stream pointer to a file stream
+ * \param string output string
+ * \param ... variable argument
+ *
+ * \return None
+ */
 // an error-checking wrapper for fprintf
 void printf_errorchecked(FILE * const stream, const char * const string, ...) {
 	va_list array;
@@ -200,7 +323,17 @@ void printf_errorchecked(FILE * const stream, const char * const string, ...) {
 	va_end(array);
 } // end printf_errorchecked
 
-
+/**
+ * \brief Close and remove used resources.
+ * @details This function removes used resources
+ * in case of an error or if the program ends.
+ * 
+ * \param exit_status returned exit paramter 
+ * \param r struct with bundled parameters
+ *
+ * \return exit 
+ * \retval exit_status
+ */
 // cleaning up after failure or at the end
 void remove_resources(int exit_status, struct resources * const r) {
     if (r->sem_full != NULL) {
@@ -260,7 +393,17 @@ void remove_resources(int exit_status, struct resources * const r) {
     exit(exit_status);
 } // end remove_resources
 
-
+/**
+ * \brief Check sem_wait for errors.
+ * @details This function is called from the main function, it
+ * checks sem_wait for errors and removes all resources in case of an error.
+ * sem_wait() decrements (locks) the semaphore pointed to by sem.
+ *
+ * \param sem semaphore pointed to from sem_open
+ * \param r struct with bundled parameters
+ *
+ * \return None
+ */
 // down on semaphore
 void sem_wait_errorchecked(sem_t * const sem, struct resources * const r) {
     if (sem_wait(sem) == -1) {
@@ -269,7 +412,17 @@ void sem_wait_errorchecked(sem_t * const sem, struct resources * const r) {
     }
 } // end sem_wait_errorchecked
 
-
+/**
+ * \brief Check sem_post for errors.
+ * @details This function is called from the main function, it
+ * checks sem_post for errors and removes all resources in case of an error.
+ * sem_post() increments (unlocks) the semaphore pointed to by sem.
+ *
+ * \param sem semaphore pointed to from sem_open
+ * \param r struct with bundled parameters
+ *
+ * \return None
+ */
 // up on semaphore
 void sem_post_errorchecked(sem_t * const sem, struct resources * const r) {
     if (sem_post(sem) == -1) {
@@ -278,3 +431,15 @@ void sem_post_errorchecked(sem_t * const sem, struct resources * const r) {
     }
 } // end sem_post_errorchecked
 
+/**
+ * =================================================================== eof ==
+ */
+
+ /**
+ * mode: c
+ * c-mode: k&r
+ * c-basic-offset: 4
+ * indent-tabs-mode: t
+ * end
+ *
+ */
