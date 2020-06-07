@@ -202,12 +202,12 @@ static void create_name(char *name, const unsigned int offset, const char * cons
 /**
  * \brief Creates new or opens existing semaphore.
  * @details This functions is an error-checking wrapper for the system call sem_open.
- * It removes all resources in case of an error.
+ * All resources are removed in case of an error.
  * 
- * \param name
- * \param oflag
- * \param mode
- * \param value
+ * \param name identifies the semaphore
+ * \param oflag specifies flags
+ * \param mode specifies permissions
+ * \param value initial value for new semaphore
  * \param r struct with bundled parameters
  *
  * \return value of strtol
@@ -231,7 +231,9 @@ static sem_t *sem_open_errorchecked(const char * const name, const int oflag, \
  * @details This function creates and opens a new, 
  * or opens an existing, POSIX shared memory object.
  * 
- * \param string optarg argument
+ * \param name specifies shared memory object
+ * \param oflag bit mask specified access mode
+ * \param mode specifies permissions
  * \param r struct with bundled parameters
  *
  * \return returnvalue of shm_open 
