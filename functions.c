@@ -104,7 +104,7 @@ void init_resources(const int argc, const char * const * const argv, struct reso
  *
  * \return None
  */
-// check the commanline arguments and initialize r->length
+// check the commandline arguments and initialize r->length
 static void check_arguments(struct resources * const r) {
     int opt;
 	
@@ -137,7 +137,7 @@ static void check_arguments(struct resources * const r) {
  * parameters are valid. It checks either if it is a number,
  * if it is out of range, if it ist too big, if it has not a 
  * valid size or if characters are found in the string
- * instead of nimbers.
+ * instead of numbers.
  * 
  * \param string optarg argument
  * \param r struct with bundled parameters
@@ -200,14 +200,14 @@ static void create_name(char *name, const unsigned int offset, const char * cons
 } // end create_name
     
 /**
- * \brief Check memory space input length with strtol and length of memory.
- * @details This function checks if the input 
- * parameters are valid. It checks either if it is a number,
- * if it is out of range, if it ist too big, if it has not a 
- * valid size or if characters are found in the string
- * instead of numbers. It removes all resources in case of an error.
+ * \brief Creates new or opens existing semaphore.
+ * @details This functions is an error-checking wrapper for the system call sem_open.
+ * It removes all resources in case of an error.
  * 
- * \param string optarg argument
+ * \param name
+ * \param oflag
+ * \param mode
+ * \param value
  * \param r struct with bundled parameters
  *
  * \return value of strtol
@@ -334,7 +334,7 @@ void printf_errorchecked(FILE * const stream, const char * const string, ...) {
  * \return exit 
  * \retval exit_status
  */
-// cleaning up after failure or at the end
+// cleaning up on failure or at the end
 void remove_resources(int exit_status, struct resources * const r) {
     if (r->sem_full != NULL) {
         if (sem_close(r->sem_full) == -1) {

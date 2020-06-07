@@ -28,7 +28,7 @@
 
 /**
  *
- * \brief The main fuction to read from the shared memory ringbuffer.
+ * \brief The main function to read from the shared memory ringbuffer.
  * @details This function initializes resources, calls sem_wait to 
  * block the critical section before entering, it reads from the 
  * shared memory ringbuffer and writes to stdout as long as 

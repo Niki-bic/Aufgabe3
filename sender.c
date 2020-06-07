@@ -28,7 +28,7 @@
 
 /**
  *
- * \brief The main fuction to write to the shared memory ringbuffer.
+ * \brief The main function to write to the shared memory ringbuffer.
  * @details This function initializes resources, calls sem_wait to 
  * block the critical section before entering, it writes to the 
  * shared memory ringbuffer for the given length given to it, 
