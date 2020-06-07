@@ -42,38 +42,42 @@
  * \return None
  */
 int main(const int argc, const char * const * const argv) {
-    struct resources r = {0};                   // setting all members to 0
-
-    init_resources(argc, argv, &r);             // initializes structure
-    
-    int c = '\0';                               // character for reading/writing
-    int i = 0;                                  // index for shared-memory
+    struct resources r = {0};                  
+	 // initializes structure
+    init_resources(argc, argv, &r);            
+    // character for reading/writing
+    int c = '\0';   
+	// index for shared-memory	
+    int i = 0;                                 
 
     while (TRUE) {      
-
-        // critical section
-        sem_wait_errorchecked(r.sem_full, &r);  // down on sem_full
-
-        c = *(r.shared_mem_pointer + i);        // reading from shared-memory
-
-        sem_post_errorchecked(r.sem_empty, &r); // up on sem_empty
-        // end critical section
+		
+		// locks semaphore
+        sem_wait_errorchecked(r.sem_full, &r);  
+		// reading from shared-memory
+        c = *(r.shared_mem_pointer + i);        
+		// unlocks semaphore
+        sem_post_errorchecked(r.sem_empty, &r); 
+       
 
         i++;
-        i %= r.length;                          // circular buffer
-
+		// circular buffer
+        i %= r.length;                          
+		// checks if c EOF
         if (c == EOF) {
             break;
         }
-
-        if (putchar(c) == EOF) {                // writing to stdout
+		 // writing to stdout
+        if (putchar(c) == EOF) {        
+			// errorhandling		
             printf_errorchecked(stderr, "%s: Error in putchar\n", r.argv[0]);
+			// cleaning up
             remove_resources(EXIT_FAILURE, &r);
         }
-    } // end while (TRUE)
-
-    remove_resources(EXIT_SUCCESS, &r);         // cleaning up
-} // end main
+    }
+	// cleaning up
+    remove_resources(EXIT_SUCCESS, &r);         
+}
 
 /**
  * =================================================================== eof ==

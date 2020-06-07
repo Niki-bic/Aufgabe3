@@ -42,38 +42,43 @@
  * \return None
  */
 int main(const int argc, const char * const * const argv) {
-    struct resources r = {0};                      // setting all members to 0 
-
-    init_resources(argc, argv, &r);                // initializes the structure
-
-    int c = '\0';                                  // character for reading/writing
-    int i = 0;                                     // index for shared-memory
+	// setting all members to 0 
+    struct resources r = {0};                      
+	// initializes the structure
+    init_resources(argc, argv, &r);                
+	// character for reading/writing
+    int c = '\0';    
+	// index for shared-memory	
+    int i = 0;                                   
 
     while (TRUE) {
-        c = getchar();                             // reading from stdin
+        c = getchar();
+		 // reading from stdin
         if (c == EOF && ferror(stdin)) {
+			// errorhandling
             printf_errorchecked(stderr, "%s: Error in getchar\n", r.argv[0]);
+			// clean up function
             remove_resources(EXIT_FAILURE, &r);
         }
 
-        // critical section
-        sem_wait_errorchecked(r.sem_empty, &r);    // down auf sem_empty
-
-        *(r.shared_mem_pointer + i) = c;           // writing in shared-memory
- 
-        sem_post_errorchecked(r.sem_full, &r);     // up auf sem_full
-        // end critical section
-
+		// locks semaphore
+        sem_wait_errorchecked(r.sem_empty, &r);    
+		// writing in shared-memory
+        *(r.shared_mem_pointer + i) = c;           
+		// unlocks semaphore
+        sem_post_errorchecked(r.sem_full, &r);     
+       
+		// circular buffer 
         i++;
-        i %= r.length;                             // circular buffer 
-
+        i %= r.length;                             
+		// checks if c EOF
         if (c == EOF) {
             break;
         }
-    } // end while (TRUE)
-
-    remove_resources(EXIT_SUCCESS, &r);            // cleaning up
-} // end main
+    }
+	// clean up function
+    remove_resources(EXIT_SUCCESS, &r);           
+}
 
 /**
  * =================================================================== eof ==

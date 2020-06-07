@@ -68,28 +68,35 @@ static int *mmap_errorchecked(void *addr, const size_t length, const int prot, \
 void init_resources(const int argc, const char * const * const argv, struct resources * const r) {
     r->argc = (int) argc;
     r->argv = (char * const *) argv;
+	 // check arguments and initialize r->length
+    check_arguments(r);                              
+	 // create name for shared-memory
+	create_name(r->shm_name_0, 0, "/shm_", r);   
+	// create name for first semaphore
+    create_name(r->sem_name_1, 1, "/sem_", r);
+	// create name for second semaphore
+    create_name(r->sem_name_2, 2, "/sem_", r);       
 
-    check_arguments(r);                               // check arguments and initialize r->length
-
-	create_name(r->shm_name_0, 0, "/shm_", r);        // create name for shared-memory
-    create_name(r->sem_name_1, 1, "/sem_", r);        // create name for first semaphore
-    create_name(r->sem_name_2, 2, "/sem_", r);        // create name for second semaphore
-
-    // create or open semaphore full
+    // create semaphore full
     r->sem_full  = sem_open_errorchecked(r->sem_name_1, O_CREAT, S_IRWXU, 0, r);
-    // create or open semaphore empty
+    // create semaphore empty
     r->sem_empty = sem_open_errorchecked(r->sem_name_2, O_CREAT, S_IRWXU, r->length, r);
 
     // check if sender or empfaenger and create shared memory
     if (strcmp(argv[0], "./sender") == 0) {
         r->shared_memory = shm_open_errorchecked(r->shm_name_0, O_CREAT | O_RDWR, S_IRWXU, r);
+		// sets the size of the file referenced by the descriptor fildes to length bytes
         ftruncate_errorchecked(r->shared_memory, r->length * sizeof(int), r);
+		// mapping shared memory
         r->shared_mem_pointer = mmap_errorchecked(NULL, r->length * sizeof(int), \
                 PROT_WRITE, MAP_SHARED, r->shared_memory, 0, r);
     } else {     // strcmp(argv[0], "./empfaenger") == 0
+		//create shared memory
         r->shared_memory = shm_open_errorchecked(r->shm_name_0, O_CREAT | O_RDONLY, S_IRWXU, r);
+		// sets the size of the file referenced by the descriptor fildes to length bytes (setting the size of the shared-memory)
         ftruncate_errorchecked(r->shared_memory, r->length * sizeof(int), r);
-            r->shared_mem_pointer = mmap_errorchecked(NULL, r->length * sizeof(int), \
+		// mapping shared memory
+        r->shared_mem_pointer = mmap_errorchecked(NULL, r->length * sizeof(int), \
                 PROT_READ, MAP_SHARED, r->shared_memory, 0, r);
     }
 } // end init_resources
@@ -107,9 +114,11 @@ void init_resources(const int argc, const char * const * const argv, struct reso
 // check the commandline arguments and initialize r->length
 static void check_arguments(struct resources * const r) {
     int opt;
-	
-	if(r->argc != 2 && r->argc != 3) {                           // check input
+	// check if correct numbers of argc
+	if(r->argc != 2 && r->argc != 3) {       
+		// errorhandling
         printf_errorchecked(stderr, "Usage: %s -m size\n", r->argv[0]);
+		// clean up function
         remove_resources(EXIT_FAILURE, r);
     }
 
@@ -117,19 +126,24 @@ static void check_arguments(struct resources * const r) {
     while ((opt = getopt(r->argc, r->argv, ":m:")) != -1) {
         switch (opt) {
             case 'm':
+				// write the errorchecked size of the circular buffer in r->length
                 r->length = strtol_errorchecked(optarg, r);
                 break;
             default:
+				// errorhandling
                 printf_errorchecked(stderr, "Usage: %s -m size\n", r->argv[0]);
+				// clean up function
                 remove_resources(EXIT_FAILURE, r);
         }
     }
-	
-    if (optind != r->argc) {                                     // check input again
+	// check input again
+    if (optind != r->argc) {   
+		// errorhandling
         printf_errorchecked(stderr, "Usage: %s -m size\n", r->argv[0]);
+		// clean up function
         remove_resources(EXIT_FAILURE, r);
     }
-} // end check_arguments
+}
 
 /**
  * \brief Check memory space input length with strtol and length of memory.
@@ -145,31 +159,45 @@ static void check_arguments(struct resources * const r) {
  * \return value of strtol
  * \retval number
  */
-// convert string to unsigned long
+// convert string to unsigned long and checks for errors
 static unsigned long strtol_errorchecked(const char * const string, struct resources * const r){
 	char *end_ptr;
 	errno = 0;
 	unsigned long number = (unsigned long) strtol(string, &end_ptr, 10);
-
+	// checks if the input are number
     if (end_ptr == string) {
+		// errorhandling
         printf_errorchecked(stderr, "Usage: %s not an integral number\n", r->argv[0]);
+		// clean up function
         remove_resources(EXIT_FAILURE, r);
+	// check if '/0' is at the end of the input
     } else if (*end_ptr != '\0') {
+		// errorhandling
         printf_errorchecked(stderr, "Usage: %s extra characters at end of input\n", r->argv[0]);
+		// clean up function
         remove_resources(EXIT_FAILURE, r);
+	// checks if the number are out of range
     } else if (number == ULONG_MAX && errno == ERANGE) {
+		// errorhandling
         printf_errorchecked(stderr, "Usage: %s number out of range\n", r->argv[0]);
+		// clean up function
         remove_resources(EXIT_FAILURE, r);
+	// checks if the number are too big(max unsigned long)
     } else if (number > ULONG_MAX) {
+		// errorhandling
         printf_errorchecked(stderr, "Usage: %s number too big\n", r->argv[0]);
+		// clean up function
         remove_resources(EXIT_FAILURE, r);
+	// check if number is smaller than zero or if higher than maximum size of a single shared memory
     } else if (number <= 0 || number >= SHM_MAX) {
+		// errorhandling
         printf_errorchecked(stderr, "Usage: %s: not a valid size\n", r->argv[0]);
+		// clean up function
         remove_resources(EXIT_FAILURE, r);
     }
 
 	return number;
-} // end strtol_errorchecked
+} 
 
 /**
  * \brief Create name for semaphores.
@@ -185,19 +213,23 @@ static unsigned long strtol_errorchecked(const char * const string, struct resou
 // create name for the semaphore and shared memory
 static void create_name(char *name, const unsigned int offset, const char * const prefix, \
         struct resources * const r) {
-    strncpy(r->shm_name_0, prefix, PREFIX_LEN);              // no sane error-checking in strncpy possible
-
-	uid_t user_id = getuid() * 1000 + offset;                // getuit() is always successfull
+	// create name for shared memory
+    strncpy(r->shm_name_0, prefix, PREFIX_LEN);             
+	// getuid number
+	uid_t user_id = getuid() * 1000 + offset;                
 	char uid_string[UID_LEN];
-
+	// check retunr value of snprintf
 	if (snprintf(uid_string, UID_LEN, "%d", user_id) < 0) {
+		// errorhandling
         printf_errorchecked(stderr, "Usage: %s -m size\n", r->argv[0]);
+		// clean up function
         remove_resources(EXIT_FAILURE, r);
     }
-        
-	strncat(name, uid_string, UID_LEN);                      // no sane error-checking in strncat possible
+    // create name for semaphore
+	strncat(name, uid_string, UID_LEN);        
+	// '/0' at the end of the string
     name[PREFIX_LEN + UID_LEN] = '\0';
-} // end create_name
+} 
     
 /**
  * \brief Creates new or opens existing semaphore.
@@ -216,15 +248,17 @@ static void create_name(char *name, const unsigned int offset, const char * cons
 // create or open semaphore
 static sem_t *sem_open_errorchecked(const char * const name, const int oflag, \
         const mode_t mode, const unsigned int value, struct resources * const r) {
+	// open, create semaphore
     sem_t *sem_pointer = sem_open(name, oflag, mode, value);
-
+	// check if open(create) semaphore failed
     if (sem_pointer == SEM_FAILED) {
         printf_errorchecked(stderr, "%s: Error in sem_open\n", r->argv[0]);
+		// clean up function
         remove_resources(EXIT_FAILURE, r);
     }
 
     return sem_pointer;
-} // end sem_open_errorchecked
+}
 
 /**
  * \brief Create shared memory if needed.
@@ -240,15 +274,18 @@ static sem_t *sem_open_errorchecked(const char * const name, const int oflag, \
 // create or open shared-memory
 static int shm_open_errorchecked(const char * const name, const int oflag, \
         const mode_t mode, struct resources * const r) {
+	// open, create shared memory
     int shared_memory = shm_open(name, oflag, mode);
-
+	// check if open(create) shared memory failed
     if (shared_memory == -1) {
+		// errorhandling
         printf_errorchecked(stderr, "%s: Error in shm_open\n", r->argv[0]);
+		// clean up function
         remove_resources(EXIT_FAILURE, r);
     }
 
     return shared_memory;
-} // end shm_open_errorchecked
+} 
 
 /**
  * \brief Check ftruncate.
@@ -263,13 +300,16 @@ static int shm_open_errorchecked(const char * const name, const int oflag, \
  */
 // setting the size of the shared-memory
 static void ftruncate_errorchecked(int fd, const off_t length, struct resources * const r) {
+	//set errno zero
     errno = 0;
-
+	// check if fdruncate returns an error
     if (ftruncate(fd, length) == -1 && errno != 0 && errno != EINVAL) {
+		// errorhandling
         printf_errorchecked(stderr, "%s: Error in ftruncate\n", r->argv[0]);
+		// clean up function
         remove_resources(EXIT_FAILURE, r);
     }
-} // end ftruncate_errorchecked
+}
 
 /**
  * \brief Check mmap for errors.
@@ -291,14 +331,16 @@ static void ftruncate_errorchecked(int fd, const off_t length, struct resources 
 static int *mmap_errorchecked(void *addr, const size_t length, const int prot, \
         const int flags, const int fd, const off_t offset, struct resources * const r) {
     void *shared_mem_pointer = mmap(addr, length, prot, flags, fd, offset);
-    
+    // check if mapping shared memory failed
     if (shared_mem_pointer == MAP_FAILED) {
+		// errorhandling
         printf_errorchecked(stderr, "%s: Error in mmap\n", r->argv[0]);
+		// clean up function
         remove_resources(EXIT_FAILURE, r);
     }
 
     return shared_mem_pointer;
-} // end mmap_errorchecked
+}
 
 /**
  * \brief Check printf for errors.
@@ -312,16 +354,18 @@ static int *mmap_errorchecked(void *addr, const size_t length, const int prot, \
  */
 // an error-checking wrapper for fprintf
 void printf_errorchecked(FILE * const stream, const char * const string, ...) {
+	// va is used to generate a function with arguments that can vary
 	va_list array;
 	va_start(array, string);
-
+	
 	if (vfprintf(stream, string, array) < 0) {
+		// errorhandling
 		fprintf(stderr, "Error in vfprintf()!\n");
 		exit(EXIT_FAILURE);
 	}
 
 	va_end(array);
-} // end printf_errorchecked
+}
 
 /**
  * \brief Close and remove used resources.
@@ -336,29 +380,38 @@ void printf_errorchecked(FILE * const stream, const char * const string, ...) {
  */
 // cleaning up on failure or at the end
 void remove_resources(int exit_status, struct resources * const r) {
+	// check if sem_full are created
     if (r->sem_full != NULL) {
+		// check if error while closing semaphore
         if (sem_close(r->sem_full) == -1) {
+			// errorhandling
             printf_errorchecked(stderr, "%s: Error in sem_close\n", r->argv[0]);
             exit_status = EXIT_FAILURE;
         }
     }
-
+	// check if sem_empty are created
     if (r->sem_empty != NULL) {
+		// check if error while closing semaphore
         if (sem_close(r->sem_empty) == -1) {
+			// errorhandling
             printf_errorchecked(stderr, "%s: Error in sem_close\n", r->argv[0]);
             exit_status = EXIT_FAILURE;
         }
     }
-
+	// check if shared_memory are created
     if (r->shared_memory != 0) {
+		// check if error while closing shared memory
         if (close(r->shared_memory) == -1) {
+			// errorhandling
             printf_errorchecked(stderr, "%s: Error in close\n", r->argv[0]);
             exit_status = EXIT_FAILURE;
         }
     }
-
+	// check if virtual-memory are created
     if (r->shared_mem_pointer != NULL) {
+		// check if error while unmapping shared memory
         if (munmap(r->shared_mem_pointer, r->length * sizeof(int)) == -1) {
+			// errorhandling
             printf_errorchecked(stderr, "%s: Error in munmap\n", r->argv[0]);
             exit_status = EXIT_FAILURE;
         }
@@ -368,22 +421,29 @@ void remove_resources(int exit_status, struct resources * const r) {
     // only in ./empfaenger or in case of failure should this be done
     // only one of both processes should unlink in case of normal termination: the ./empfaenger
     if (strcmp(r->argv[0], "./empfaenger") == 0 || exit_status == EXIT_FAILURE) {
-        if (r->shm_name_0 != NULL) {
+        // check if shared memory name are created
+		if (r->shm_name_0 != NULL) {
+			// check if error removing shared memory object name
             if (shm_unlink(r->shm_name_0) == -1) {
+				// errorhandling
                 printf_errorchecked(stderr, "%s: Error in shm_unlink\n", r->argv[0]);
                 exit_status = EXIT_FAILURE;
             }
         }
-
+		// check if named semaphore are created
         if (r->sem_name_1 != NULL) {
+			// check if error removing named semaphore
             if (sem_unlink(r->sem_name_1) == -1) {
+				// errorhandling
                 printf_errorchecked(stderr, "%s: Error in sem_unlink\n", r->argv[0]);
                 exit_status = EXIT_FAILURE;
             }
         }
-
+		// check if named semaphore are created
         if (r->sem_name_2 != NULL) {
+			// check if error removing named semaphore
             if (sem_unlink(r->sem_name_2) == -1) {
+				// errorhandling
                 printf_errorchecked(stderr, "%s: Error in sem_unlink\n", r->argv[0]);
                 exit_status = EXIT_FAILURE;
             }
@@ -391,7 +451,7 @@ void remove_resources(int exit_status, struct resources * const r) {
     }
 
     exit(exit_status);
-} // end remove_resources
+} 
 
 /**
  * \brief Check sem_wait for errors.
@@ -406,11 +466,14 @@ void remove_resources(int exit_status, struct resources * const r) {
  */
 // down on semaphore
 void sem_wait_errorchecked(sem_t * const sem, struct resources * const r) {
+	// check if error locking semaphore
     if (sem_wait(sem) == -1) {
+		// errorhandling
         printf_errorchecked(stderr, "%s: Error in sem_wait\n", r->argv[0]);
+		// clean up function
         remove_resources(EXIT_FAILURE, r);
     }
-} // end sem_wait_errorchecked
+}
 
 /**
  * \brief Check sem_post for errors.
@@ -425,11 +488,14 @@ void sem_wait_errorchecked(sem_t * const sem, struct resources * const r) {
  */
 // up on semaphore
 void sem_post_errorchecked(sem_t * const sem, struct resources * const r) {
+	// check if error unlocking semaphore
     if (sem_post(sem) == -1) {
+		// errorhandling
         printf_errorchecked(stderr, "%s: Error in sem_post\n", r->argv[0]);
+		// clean up function
         remove_resources(EXIT_FAILURE, r);
     }
-} // end sem_post_errorchecked
+} 
 
 /**
  * =================================================================== eof ==
